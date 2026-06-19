@@ -1,0 +1,35 @@
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2012
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ParadoxSimulator", "ParadoxSimulator.csproj", "{3507D50C-2FA1-4BC4-BABE-5F0DBEB4060C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{5B372DF6-C041-4D1A-83A9-9895E6D8F321}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{27478349-2584-41CE-9120-B359880E85B8}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+	Debug|Any CPU = Debug|Any CPU
+	ExportDebug|Any CPU = ExportDebug|Any CPU
+	ExportRelease|Any CPU = ExportRelease|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3507D50C-2FA1-4BC4-BABE-5F0DBEB4060C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3507D50C-2FA1-4BC4-BABE-5F0DBEB4060C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3507D50C-2FA1-4BC4-BABE-5F0DBEB4060C}.ExportDebug|Any CPU.ActiveCfg = ExportDebug|Any CPU
+		{3507D50C-2FA1-4BC4-BABE-5F0DBEB4060C}.ExportDebug|Any CPU.Build.0 = ExportDebug|Any CPU
+		{3507D50C-2FA1-4BC4-BABE-5F0DBEB4060C}.ExportRelease|Any CPU.ActiveCfg = ExportRelease|Any CPU
+		{3507D50C-2FA1-4BC4-BABE-5F0DBEB4060C}.ExportRelease|Any CPU.Build.0 = ExportRelease|Any CPU
+		{5B372DF6-C041-4D1A-83A9-9895E6D8F321}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B372DF6-C041-4D1A-83A9-9895E6D8F321}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B372DF6-C041-4D1A-83A9-9895E6D8F321}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B372DF6-C041-4D1A-83A9-9895E6D8F321}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{5B372DF6-C041-4D1A-83A9-9895E6D8F321}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B372DF6-C041-4D1A-83A9-9895E6D8F321}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
+		{27478349-2584-41CE-9120-B359880E85B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27478349-2584-41CE-9120-B359880E85B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27478349-2584-41CE-9120-B359880E85B8}.ExportDebug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27478349-2584-41CE-9120-B359880E85B8}.ExportDebug|Any CPU.Build.0 = Debug|Any CPU
+		{27478349-2584-41CE-9120-B359880E85B8}.ExportRelease|Any CPU.ActiveCfg = Debug|Any CPU
+		{27478349-2584-41CE-9120-B359880E85B8}.ExportRelease|Any CPU.Build.0 = Debug|Any CPU
+	EndGlobalSection
+EndGlobal

@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://ce7hi7tlu6lcl"]
+
+[ext_resource type="Script" uid="uid://bebv1ecevaqbb" path="res://Render/WorldRender.cs" id="1_u1tn8"]
+[ext_resource type="Script" uid="uid://7ha2kqhy3rjc" path="res://Render/PlayerController.cs" id="2_l2rqx"]
+[ext_resource type="Script" uid="uid://bqqwhu7307tpm" path="res://Render/PlayerCamera.cs" id="3_ar1c6"]
+
+[node name="WorldRender" type="Node" unique_id=246933078]
+script = ExtResource("1_u1tn8")
+
+[node name="PlayerController" type="Node" parent="." unique_id=1219148852]
+script = ExtResource("2_l2rqx")
+
+[node name="Camera2D" type="Camera2D" parent="PlayerController" unique_id=370442349]
+script = ExtResource("3_ar1c6")
+
+[node name="Hud" type="CanvasLayer" parent="PlayerController" unique_id=1375363492]
+
+[node name="CalendarContainer" type="VBoxContainer" parent="PlayerController/Hud" unique_id=1369050758]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -208.0
+offset_bottom = 58.0
+grow_horizontal = 0
+
+[node name="GameCalendar" type="Label" parent="PlayerController/Hud/CalendarContainer" unique_id=400806962]
+layout_mode = 2
+theme_override_font_sizes/font_size = 30
+text = "第1年4月1日"
+
+[node name="TimeFlowRate" type="TabBar" parent="PlayerController/Hud/CalendarContainer" unique_id=1219762538]
+custom_minimum_size = Vector2(0, 41.075)
+layout_mode = 2
+current_tab = 0
+tab_count = 6
+tab_0/title = "II"
+tab_1/title = "1"
+tab_2/title = "2"
+tab_3/title = "3"
+tab_4/title = "4"
+tab_5/title = "5"
+
+[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=1546968360]
