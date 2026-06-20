@@ -3,6 +3,18 @@
 [ext_resource type="Script" uid="uid://bebv1ecevaqbb" path="res://Render/WorldRender.cs" id="1_u1tn8"]
 [ext_resource type="Script" uid="uid://7ha2kqhy3rjc" path="res://Render/PlayerController.cs" id="2_l2rqx"]
 [ext_resource type="Script" uid="uid://bqqwhu7307tpm" path="res://Render/PlayerCamera.cs" id="3_ar1c6"]
+[ext_resource type="Texture2D" uid="uid://d1w7c1rwd5rth" path="res://Assets/Grassland_01.png" id="4_cplih"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_37bak"]
+texture = ExtResource("4_cplih")
+margins = Vector2i(12, 30)
+texture_region_size = Vector2i(160, 160)
+0:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_xq600"]
+tile_shape = 3
+tile_size = Vector2i(160, 160)
+sources/0 = SubResource("TileSetAtlasSource_37bak")
 
 [node name="WorldRender" type="Node" unique_id=246933078]
 script = ExtResource("1_u1tn8")
@@ -41,3 +53,4 @@ tab_4/title = "4"
 tab_5/title = "5"
 
 [node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=1546968360]
+tile_set = SubResource("TileSet_xq600")

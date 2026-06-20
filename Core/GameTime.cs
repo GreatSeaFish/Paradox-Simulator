@@ -16,7 +16,7 @@ namespace ParadoxSimulator.Core
         // ==========================================
         
         // 当前档位（0=暂停, 1~5=正常速度），你可以根据需要设定初始默认几速
-        private int _currentSpeedLevel = 3; 
+        private int _currentSpeedLevel = 0; 
 
         // ===== 【新增】日期变更事件 =====
         public event Action<DateTime>? OnDateChanged;

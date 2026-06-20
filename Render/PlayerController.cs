@@ -28,7 +28,7 @@ public partial class PlayerController : Node
             UpdateCalendarText(CoreHost.GameTime.CurrentDate);
         }
         
-        _timeFlowRateTab.CurrentTab = 3; 
+        _timeFlowRateTab.CurrentTab = 0; 
     }
 
     public override void _ExitTree()
