@@ -1,5 +1,6 @@
 ﻿namespace Shared.Protocol
 {
+    // 包头
     public enum PacketType : byte
     {
         ServerInit = 0,             // 服务器分配 PeerID

@@ -11,7 +11,7 @@ namespace ParadoxSimulator.Core
     public static class GlobalPlayerState
     {
         /// <summary>
-        /// 全网所有玩家的【最新逻辑帧坐标】集合（Key: PlayerId, Value: 定点数坐标）
+        /// 全房间所有玩家的【最新逻辑帧坐标】集合（Key: PlayerId, Value: 定点数坐标）
         /// </summary>
         public static readonly Dictionary<int, FixVector2> PlayerPositions = new();  
 
