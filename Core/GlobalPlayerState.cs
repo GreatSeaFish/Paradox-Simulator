@@ -32,27 +32,10 @@ namespace ParadoxSimulator.Core
         /// </summary>
         public static FixVector2 LocalInputDirection { get; set; } = FixVector2.Zero;  
 
-        /// <summary>
-        /// 开局游戏状态初始化：清空旧数据，并根据大厅玩家名单动态排开初始位置
-        /// </summary>
-        public static void InitializeGame()
-        {
-            PlayerPositions.Clear();
-            foreach (var player in LocalClientInfo.LobbyPlayers)  
-            {
-                // 1. 获取分配给该槽位的六边形出生点
-                HexCoord spawnHex = SpawnPoints[player.SlotId];
 
-                // 2. 将玩家的逻辑坐标初始化在这里 (暂时粗略映射，后续你的寻路如果完全基于Hex，建议直接存HexCoord)
-                PlayerPositions[player.PlayerId] = new FixVector2((Fix64)spawnHex.X, (Fix64)spawnHex.Y);  
-                
-                // 3. [核心] 将该出生点地块的归属权转移给该玩家
-                CoreHost.MapData.SetTileOwner(spawnHex, player.PlayerId);
-            }
-        }
 
         /// <summary>
-        /// 【已简化】直接获取当前确定的确定性逻辑位置，不再进行插值计算
+        /// 直接获取当前确定的确定性逻辑位置，不再进行插值计算
         /// </summary>
         public static void GetLogicalPositions(Dictionary<int, FixVector2> outPos)
         {

@@ -12,6 +12,7 @@ public partial class CoreHost : Node
     public static SettlementManager SettlementManager { get; private set; } = null!;
     // 【新增】全局共享的地图数据中心
     public static MapData MapData { get; private set; } = null!;
+    public static GameStateManager StateManager { get; private set; } = null!;
     
     
     public override void _Ready()
@@ -30,6 +31,16 @@ public partial class CoreHost : Node
         
         CommandSender = new ClientCommandSender(NetworkManager);
         CommandHandler = new ServerCommandHandler(GameTime);
+        // 【新增】实例化状态管理器
+        StateManager = new GameStateManager();
+        
+        // 【新增】绑定开局事件：当网络层收到开局包时，立刻在逻辑层完成状态切换和数据准备
+        NetworkManager.OnGameStartReceived += () => 
+        {
+            StateManager.StartGame();
+        };
+        
+        
         
         // 2. 【新增】初始化地图数据
         MapData = new MapData();
