@@ -1,16 +1,18 @@
 using Godot;
 using System;
 using ParadoxSimulator.Core;
+using ParadoxSimulator.Core.WorldMapSystem;
 
 public partial class CoreHost : Node
 {
     public static GameNetworkManager NetworkManager { get; private set; } = null!;
     public static ClientCommandSender CommandSender { get; private set; } = null!;
     public static ServerCommandHandler CommandHandler { get; private set; } = null!;
-    
     public static GameTime GameTime { get; private set; } = null!;
-    
     public static SettlementManager SettlementManager { get; private set; } = null!;
+    // 【新增】全局共享的地图数据中心
+    public static MapData MapData { get; private set; } = null!;
+    
     
     public override void _Ready()
     {
@@ -28,6 +30,12 @@ public partial class CoreHost : Node
         
         CommandSender = new ClientCommandSender(NetworkManager);
         CommandHandler = new ServerCommandHandler(GameTime);
+        
+        // 2. 【新增】初始化地图数据
+        MapData = new MapData();
+        string projectRoot = ProjectSettings.GlobalizePath("res://");
+        string jsonPath = System.IO.Path.Combine(projectRoot, "Core", "WorldMapSystem", "Maps", "terrain_data.json");
+        MapData.LoadMapData(jsonPath);
         
     }
     

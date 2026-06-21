@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://d1w7c1rwd5rth"
-path="res://.godot/imported/Grassland_01.png-7161c5cf6dd7575cbe071fcc4d9811ad.ctex"
+uid="uid://cfuv3ee4eg7nv"
+path="res://.godot/imported/BorderSheetDashed.png-753b548d82f28d658b63d32c72ff059d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Grassland_01.png"
-dest_files=["res://.godot/imported/Grassland_01.png-7161c5cf6dd7575cbe071fcc4d9811ad.ctex"]
+source_file="res://Assets/MapTile/BorderSheetDashed.png"
+dest_files=["res://.godot/imported/BorderSheetDashed.png-753b548d82f28d658b63d32c72ff059d.ctex"]
 
 [params]
 

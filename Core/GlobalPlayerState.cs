@@ -10,6 +10,18 @@ namespace ParadoxSimulator.Core
     /// </summary>
     public static class GlobalPlayerState
     {
+        // [新增] 预设 1-8 号位置的出生点坐标 (你可以根据 terrain_data.json 里的可用平地自行微调)
+        public static readonly HexCoord[] SpawnPoints = new HexCoord[]
+        {
+            new HexCoord(0, 0, 0),      // Slot 0 (位置1)
+            new HexCoord(3, -3, 0),     // Slot 1 (位置2)
+            new HexCoord(-3, 3, 0),     // Slot 2 (位置3)
+            new HexCoord(3, 0, -3),     // Slot 3 (位置4)
+            new HexCoord(-3, 0, 3),     // Slot 4 (位置5)
+            new HexCoord(0, 3, -3),     // Slot 5 (位置6)
+            new HexCoord(0, -3, 3),     // Slot 6 (位置7)
+            new HexCoord(6, -3, -3)     // Slot 7 (位置8)
+        };
         /// <summary>
         /// 全房间所有玩家的【最新逻辑帧坐标】集合（Key: PlayerId, Value: 定点数坐标）
         /// </summary>
@@ -25,13 +37,17 @@ namespace ParadoxSimulator.Core
         /// </summary>
         public static void InitializeGame()
         {
-            PlayerPositions.Clear();  
-
+            PlayerPositions.Clear();
             foreach (var player in LocalClientInfo.LobbyPlayers)  
             {
-                // 根据 SlotId (房间位置 0~7) 错开初始坐标
-                FixVector2 startPos = new FixVector2((Fix64)(player.SlotId * 5), Fix64.Zero);  
-                PlayerPositions[player.PlayerId] = startPos;  
+                // 1. 获取分配给该槽位的六边形出生点
+                HexCoord spawnHex = SpawnPoints[player.SlotId];
+
+                // 2. 将玩家的逻辑坐标初始化在这里 (暂时粗略映射，后续你的寻路如果完全基于Hex，建议直接存HexCoord)
+                PlayerPositions[player.PlayerId] = new FixVector2((Fix64)spawnHex.X, (Fix64)spawnHex.Y);  
+                
+                // 3. [核心] 将该出生点地块的归属权转移给该玩家
+                CoreHost.MapData.SetTileOwner(spawnHex, player.PlayerId);
             }
         }
 

@@ -21,6 +21,10 @@ public partial class WorldRender : Node
         // 1. 在场景加载时，通知逻辑层初始化玩家坐标
         GlobalPlayerState.InitializeGame(); 
         
+        // [新增] 2. 通知地图渲染节点，将分配好的领地颜色画出来
+        var mapRender = GetNode<WorldMapRender>("WorldMapRender");
+        mapRender.UpdateOwnershipVisuals();
+        
         // 2. 根据大厅名单动态生成 Godot 渲染节点
         foreach (var player in LocalClientInfo.LobbyPlayers) 
         {
