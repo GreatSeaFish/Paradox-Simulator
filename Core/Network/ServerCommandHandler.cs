@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using FixedMath.NET;
+using ParadoxSimulator.Core.CommandSystem;
 using ParadoxSimulator.Core.GameData;
 using Shared.Protocol;
 
@@ -164,27 +165,34 @@ namespace ParadoxSimulator.Core
             }
 
             // 3. 【确定性业务逻辑计算】：开始解包这一帧里全网所有玩家（包含自己）在这个时间点的操作指令
-            foreach (var cmd in currentFramePacket.Commands)
+            foreach (var cmdDto in currentFramePacket.Commands)
             {
-                // 【核心修改】：通过指令类型进行分流处理
-                switch (cmd.InputType)
-                {
-                    case 1: // 移动指令
-                        // 检查此玩家在当前局内是否存在位置数据
-                        if (worldSimulationState.PlayerPositions.ContainsKey(cmd.PlayerId))
-                        {
-                            // 严格使用定点数（Fix64）进行纯位移数学运算：新位置 = 旧位置 + 移动方向 * 速度因子
-                            // 绝对不涉及 Godot 的 Node 节点坐标，纯内存数学计算，多端完全一致
-                            worldSimulationState.PlayerPositions[cmd.PlayerId] += cmd.MoveDirection * Fix64.One;
-                        }
-                        break;
-                        
-                    case 2: // 系统指令：时间控制
-                        // 直接从指令的 ActionValue 中拿到档位，驱动时钟
-                        // 如果多个人在同一帧都按了调速，那么以最后一个指令为准，所有人表现依然绝对一致
-                        timeManager.SetTimeSpeed(cmd.ActionValue);
-                        break;
-                }
+                // // 【核心修改】：通过指令类型进行分流处理
+                // switch (cmd.InputType)
+                // {
+                //     case 1: // 移动指令
+                //         // 检查此玩家在当前局内是否存在位置数据
+                //         if (worldSimulationState.PlayerPositions.ContainsKey(cmd.PlayerId))
+                //         {
+                //             // 严格使用定点数（Fix64）进行纯位移数学运算：新位置 = 旧位置 + 移动方向 * 速度因子
+                //             // 绝对不涉及 Godot 的 Node 节点坐标，纯内存数学计算，多端完全一致
+                //             worldSimulationState.PlayerPositions[cmd.PlayerId] += cmd.MoveDirection * Fix64.One;
+                //         }
+                //         break;
+                //         
+                //     case 2: // 系统指令：时间控制
+                //         // 直接从指令的 ActionValue 中拿到档位，驱动时钟
+                //         // 如果多个人在同一帧都按了调速，那么以最后一个指令为准，所有人表现依然绝对一致
+                //         timeManager.SetTimeSpeed(cmd.ActionValue);
+                //         break;
+                // }
+                
+                // 1. 通过工厂将网络数据转化为逻辑指令
+                IGameCommand? command = CommandFactory.Create(cmdDto);
+    
+                // 2. 无脑执行（多态派发）
+                command?.Execute(worldSimulationState, timeManager, cmdDto.PlayerId);
+                
             }
 
             // 4. 逻辑推进完毕，状态机时钟步进
