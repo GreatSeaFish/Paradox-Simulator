@@ -12,7 +12,7 @@ namespace ParadoxSimulator.Core
     /// 全局状态管理器
     /// 职责：维护当前游戏所处的状态，并负责在状态切换时初始化/清理相应的逻辑数据
     /// </summary>
-    public class GameStateManager(GameState gameState, WorldSimulationState simulationState, LocalContext localContext)
+    public class GameStateSystem(GameState gameState, WorldSimulationState simulationState, LocalContext localContext)
     {
 
         /// <summary>
@@ -23,7 +23,7 @@ namespace ParadoxSimulator.Core
             if (gameState.CurrentState == GamePhase.Playing) return;
 
             gameState.CurrentState = GamePhase.Playing;
-            ClientDebugger.LogHandler?.Invoke("[GameStateManager] 状态切换为: Playing，开始初始化游戏逻辑数据...");
+            ClientDebugger.LogHandler?.Invoke("[GameStateSystem] 状态切换为: Playing，开始初始化游戏逻辑数据...");
 
             // ==========================================
             // 把原先 GlobalPlayerState.InitializeGame() 的逻辑移到这里

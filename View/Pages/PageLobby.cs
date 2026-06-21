@@ -120,7 +120,7 @@ public partial class PageLobby : Control
     private void OnGameStart()
     {
         // 切入游戏渲染场景
-        GetTree().ChangeSceneToFile("res://Render/WorldRender.tscn");
+        GetTree().ChangeSceneToFile("res://View/WorldRender.tscn");
     }
 
     // ================== UI 操作事件 ==================

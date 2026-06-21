@@ -9,7 +9,7 @@ namespace ParadoxSimulator.Core.CommandSystem.Commands
     {
         public FixVector2 Direction { get; set; }
 
-        public void Execute(WorldSimulationState state, TimeManager timeManager, int playerId)
+        public void Execute(WorldSimulationState state, TimeSystem timeSystem, int playerId)
         {
             // 原有逻辑：更新玩家位置
             if (state.PlayerPositions.ContainsKey(playerId))

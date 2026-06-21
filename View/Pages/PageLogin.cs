@@ -74,6 +74,6 @@ public partial class PageLogin : Control
         CoreHost.NetworkManager.OnLobbySyncReceived -= OnFirstLobbySync;
         
         // 正式跳转到大厅页面
-        GetTree().ChangeSceneToFile("res://Render/Pages/page_lobby.tscn");
+        GetTree().ChangeSceneToFile("res://View/Pages/page_lobby.tscn");
     }
 }

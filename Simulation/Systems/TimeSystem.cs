@@ -5,9 +5,9 @@ namespace ParadoxSimulator.Core
 {
     /// <summary>
     /// 游戏内虚拟时间管理器（确定性时钟）
-    /// 职责：管理时钟步进，并实例化与驱动 SettlementManager
+    /// 职责：管理时钟步进，并实例化与驱动 SettlementSystem
     /// </summary>
-    public class TimeManager(SettlementManager settlementManager, WorldSimulationState worldSimulationState)
+    public class TimeSystem(SettlementSystem settlementSystem, WorldSimulationState worldSimulationState)
     {
 
         // ==========================================
@@ -40,7 +40,7 @@ namespace ParadoxSimulator.Core
         {
             // 防御性编程：将传入的档位钳制在 0-5 范围内，防止恶意发包越界
             _currentSpeedLevel = Math.Clamp(level, 0, 5);
-            ClientDebugger.LogHandler?.Invoke($"[TimeManager] 时间流速确切切换至: {_currentSpeedLevel} 档");
+            ClientDebugger.LogHandler?.Invoke($"[TimeSystem] 时间流速确切切换至: {_currentSpeedLevel} 档");
             
             // 触发事件，通知表现层刷新 UI 的 Tab 高亮
             OnSpeedChanged?.Invoke(_currentSpeedLevel);
@@ -75,13 +75,13 @@ namespace ParadoxSimulator.Core
                 // 当日期在确定性帧中发生实质改变时，广播给表现层
                 OnDateChanged?.Invoke( worldSimulationState.CurrentDate);
 
-                // 级联驱动 SettlementManager 的日结算
-                settlementManager.ExecuteDailySettlement(worldSimulationState.CurrentDate);
+                // 级联驱动 SettlementSystem 的日结算
+                settlementSystem.ExecuteDailySettlement(worldSimulationState.CurrentDate);
                 
-                // 检查是否跨月，如果跨月了，驱动 SettlementManager 的月结算
+                // 检查是否跨月，如果跨月了，驱动 SettlementSystem 的月结算
                 if (worldSimulationState.CurrentDate.Month != oldMonth)
                 {
-                    settlementManager.ExecuteMonthlySettlement(worldSimulationState.CurrentDate);
+                    settlementSystem.ExecuteMonthlySettlement(worldSimulationState.CurrentDate);
                 }
             }
         }

@@ -7,10 +7,10 @@ namespace ParadoxSimulator.Core.CommandSystem.Commands
     {
         public int SpeedLevel { get; set; }
 
-        public void Execute(WorldSimulationState state, TimeManager timeManager, int playerId)
+        public void Execute(WorldSimulationState state, TimeSystem timeSystem, int playerId)
         {
             // 原有逻辑：设置时间流速
-            timeManager.SetTimeSpeed(SpeedLevel);
+            timeSystem.SetTimeSpeed(SpeedLevel);
         }
     }
 }

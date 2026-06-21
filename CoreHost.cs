@@ -16,10 +16,10 @@ public partial class CoreHost : Node
     public static GameNetworkManager NetworkManager { get; private set; } = null!;
     public static ClientCommandSender CommandSender { get; private set; } = null!;
     public static ServerCommandHandler CommandHandler { get; private set; } = null!;
-    public static TimeManager TimeManager { get; private set; } = null!;
+    public static TimeSystem TimeSystem { get; private set; } = null!;
     public static MapLoader MapLoader { get; private set; } = null!;
-    public static SettlementManager SettlementManager { get; private set; } = null!;
-    public static GameStateManager StateManager { get; private set; } = null!;
+    public static SettlementSystem SettlementSystem { get; private set; } = null!;
+    public static GameStateSystem StateSystem { get; private set; } = null!;
     
     
     
@@ -39,18 +39,18 @@ public partial class CoreHost : Node
         NetworkManager = new GameNetworkManager(LocalContext);
         NetworkManager.Initialize();
         
-        SettlementManager = new SettlementManager();
-        TimeManager = new TimeManager(SettlementManager, WorldSimulationState);
+        SettlementSystem = new SettlementSystem();
+        TimeSystem = new TimeSystem(SettlementSystem, WorldSimulationState);
         
         CommandSender = new ClientCommandSender(NetworkManager, LocalContext);
-        CommandHandler = new ServerCommandHandler(TimeManager, LocalContext, WorldSimulationState);
+        CommandHandler = new ServerCommandHandler(TimeSystem, LocalContext, WorldSimulationState);
         // 【新增】实例化状态管理器
-        StateManager = new GameStateManager(GameState, WorldSimulationState, LocalContext);
+        StateSystem = new GameStateSystem(GameState, WorldSimulationState, LocalContext);
         
         // 【新增】绑定开局事件：当网络层收到开局包时，立刻在逻辑层完成状态切换和数据准备
         NetworkManager.OnGameStartReceived += () => 
         {
-            StateManager.StartGame();
+            StateSystem.StartGame();
         };
         
         MapLoader = new MapLoader(MapConfig, WorldSimulationState);
