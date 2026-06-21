@@ -1,8 +1,7 @@
 ﻿// Core\System\CommandSystem\CommandFactory.cs
 using Shared.Protocol;
-using ParadoxSimulator.Core.CommandSystem.Commands;
 
-namespace ParadoxSimulator.Core.CommandSystem
+namespace ParadoxSimulator.Simulation.Commands
 {
     public static class CommandFactory
     {

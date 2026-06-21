@@ -1,7 +1,9 @@
 ﻿// Core\System\CommandSystem\IGameCommand.cs
-using ParadoxSimulator.Core.GameData;
 
-namespace ParadoxSimulator.Core.CommandSystem
+using ParadoxSimulator.Simulation.State;
+using ParadoxSimulator.Simulation.Systems;
+
+namespace ParadoxSimulator.Simulation.Commands
 {
     public interface IGameCommand
     {

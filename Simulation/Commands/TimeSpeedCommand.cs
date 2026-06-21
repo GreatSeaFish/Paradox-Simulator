@@ -1,7 +1,9 @@
 ﻿// Core\System\CommandSystem\Commands\TimeSpeedCommand.cs
-using ParadoxSimulator.Core.GameData;
 
-namespace ParadoxSimulator.Core.CommandSystem.Commands
+using ParadoxSimulator.Simulation.State;
+using ParadoxSimulator.Simulation.Systems;
+
+namespace ParadoxSimulator.Simulation.Commands
 {
     public class TimeSpeedCommand : IGameCommand
     {

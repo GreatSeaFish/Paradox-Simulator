@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using ParadoxSimulator.Core.GameData;
+using ParadoxSimulator.Simulation.State;
 
-namespace ParadoxSimulator.Core.WorldMapSystem;
-
+namespace ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 public class MapLoader(MapConfig config, WorldSimulationState simulationState)
 {
 

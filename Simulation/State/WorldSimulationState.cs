@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using Shared.Math;
-using ParadoxSimulator.Core.WorldMapSystem;
+using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 
-namespace ParadoxSimulator.Core.GameData;
+namespace ParadoxSimulator.Simulation.State;
 
 /// <summary>
 /// 核心帧同步状态仓库 (必须保证多端绝对一致)

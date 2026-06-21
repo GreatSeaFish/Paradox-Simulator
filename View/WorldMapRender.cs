@@ -1,8 +1,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
-using ParadoxSimulator.Core.WorldMapSystem;
-using ParadoxSimulator.Core;
+using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 
 public partial class WorldMapRender : Node2D
 {

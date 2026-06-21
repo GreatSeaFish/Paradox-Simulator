@@ -1,9 +1,10 @@
 ﻿// Core\System\CommandSystem\Commands\MoveCommand.cs
 using FixedMath.NET;
-using ParadoxSimulator.Core.GameData;
+using ParadoxSimulator.Simulation.State;
+using ParadoxSimulator.Simulation.Systems;
 using Shared.Math;
 
-namespace ParadoxSimulator.Core.CommandSystem.Commands
+namespace ParadoxSimulator.Simulation.Commands
 {
     public class MoveCommand : IGameCommand
     {

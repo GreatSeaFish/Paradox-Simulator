@@ -2,7 +2,7 @@
 using Shared.Protocol;
 using Shared.Math;
 
-namespace ParadoxSimulator.Core.GameData;
+namespace ParadoxSimulator.Simulation.State;
 
 /// <summary>
 /// 客户端本地独立上下文 (不参与帧同步逻辑)

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ParadoxSimulator.Core
+namespace ParadoxSimulator.Simulation.Systems
 {
     /// <summary>
     /// 结算管理器

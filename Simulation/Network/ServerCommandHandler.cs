@@ -1,11 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using FixedMath.NET;
-using ParadoxSimulator.Core.CommandSystem;
-using ParadoxSimulator.Core.GameData;
+﻿using System.Collections.Generic;
+using ParadoxSimulator.Simulation.Commands;
+using ParadoxSimulator.Simulation.State;
+using ParadoxSimulator.Simulation.Systems;
 using Shared.Protocol;
 
-namespace ParadoxSimulator.Core
+namespace ParadoxSimulator.Simulation.Network
 {
     /// <summary>
     /// 服务端指令处理中心（客户端逻辑驱动核心）

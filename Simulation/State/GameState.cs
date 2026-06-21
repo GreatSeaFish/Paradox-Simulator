@@ -1,6 +1,7 @@
 ﻿using System;
+using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 
-namespace ParadoxSimulator.Core.GameData;
+namespace ParadoxSimulator.Simulation.State;
 
 public enum GamePhase
 {

@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ParadoxSimulator.Core.WorldMapSystem;
-
+namespace ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 /// <summary>
 /// 六边形网格纯静态工具类 (帧同步绝对确定性保证)
 /// </summary>

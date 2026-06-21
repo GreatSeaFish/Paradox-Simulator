@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ParadoxSimulator.Core.WorldMapSystem;
+namespace ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 
 /// <summary>
 /// 寻路节点数据

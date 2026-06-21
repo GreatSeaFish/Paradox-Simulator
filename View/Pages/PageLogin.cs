@@ -1,6 +1,5 @@
 using Godot;
 using System;
-using ParadoxSimulator.Core;
 using Shared.Protocol;
 
 public partial class PageLogin : Control

@@ -2,8 +2,6 @@ using Godot;
 using System.Collections.Generic;
 using FixedMath.NET;
 using Shared.Math;
-using ParadoxSimulator.Core;
-using ParadoxSimulator.Core.GameData;
 
 public partial class WorldRender : Node
 {

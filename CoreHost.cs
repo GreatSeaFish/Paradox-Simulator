@@ -1,8 +1,9 @@
 using Godot;
-using System;
-using ParadoxSimulator.Core;
-using ParadoxSimulator.Core.GameData;
-using ParadoxSimulator.Core.WorldMapSystem;
+using ParadoxSimulator.Simulation;
+using ParadoxSimulator.Simulation.Network;
+using ParadoxSimulator.Simulation.State;
+using ParadoxSimulator.Simulation.Systems;
+using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 
 public partial class CoreHost : Node
 {

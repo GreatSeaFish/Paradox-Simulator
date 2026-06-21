@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using LiteNetLib;
 using LiteNetLib.Utils;
-using ParadoxSimulator.Core.GameData;
+using ParadoxSimulator.Simulation.State;
 using Shared.Protocol;
 
-namespace ParadoxSimulator.Core
+namespace ParadoxSimulator.Simulation.Network
 {
     /// <summary>
     /// 客户端网络管理器

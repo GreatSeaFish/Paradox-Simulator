@@ -1,4 +1,4 @@
-﻿namespace ParadoxSimulator.Core.WorldMapSystem;
+﻿namespace ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 
 public static class MapRenderBridge
 {

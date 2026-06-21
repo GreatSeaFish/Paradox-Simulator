@@ -1,10 +1,9 @@
-﻿using System;
-using FixedMath.NET;
-using ParadoxSimulator.Core.GameData;
+﻿using FixedMath.NET;
 using Shared.Math;
-using ParadoxSimulator.Core.WorldMapSystem;
+using ParadoxSimulator.Simulation.State;
+using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 
-namespace ParadoxSimulator.Core
+namespace ParadoxSimulator.Simulation.Systems
 {
 
 

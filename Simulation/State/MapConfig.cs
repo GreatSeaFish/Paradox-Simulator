@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
-using ParadoxSimulator.Core.WorldMapSystem;
+using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 
-namespace ParadoxSimulator.Core.GameData;
+namespace ParadoxSimulator.Simulation.State;
 
 /// <summary>
 /// 静态地图结构与地貌缓存 (常驻内存，只读)

@@ -1,7 +1,8 @@
 ﻿using System;
-using ParadoxSimulator.Core.GameData;
+using ParadoxSimulator.Simulation;
+using ParadoxSimulator.Simulation.State;
 
-namespace ParadoxSimulator.Core
+namespace ParadoxSimulator.Simulation.Systems
 {
     /// <summary>
     /// 游戏内虚拟时间管理器（确定性时钟）

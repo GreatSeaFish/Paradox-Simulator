@@ -1,11 +1,11 @@
 ﻿using FixedMath.NET;
 using LiteNetLib;
 using LiteNetLib.Utils;
-using ParadoxSimulator.Core.GameData;
+using ParadoxSimulator.Simulation.State;
 using Shared.Math;
 using Shared.Protocol;
 
-namespace ParadoxSimulator.Core
+namespace ParadoxSimulator.Simulation.Network
 {
     /// <summary>
     /// 客户端指令发送器

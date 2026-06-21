@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ParadoxSimulator.Core;
+namespace ParadoxSimulator.Simulation;
 
 public class ClientDebugger
 {
