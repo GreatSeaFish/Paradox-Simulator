@@ -55,7 +55,7 @@ public partial class CoreHost : Node
         };
         
         MapLoader = new MapLoader(MapConfig, WorldSimulationState);
-        MapLoader.LoadMapData("Maps/terrain_data.json");
+        MapLoader.LoadMapData("terrain_data.json");
         
     }
     

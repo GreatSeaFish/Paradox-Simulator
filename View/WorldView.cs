@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using FixedMath.NET;
 using Shared.Math;
 
-public partial class WorldRender : Node
+public partial class WorldView : Node
 {
     private Dictionary<int, ColorRect> _playerNodes = new(); 
     // 仅保留当前最新的位置容器，移除 _oldPositions

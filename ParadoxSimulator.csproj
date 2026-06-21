@@ -21,7 +21,4 @@
     <PackageReference Include="FixedMath.NET" Version="1.0.1" />
     <PackageReference Include="LiteNetLib" Version="2.1.4" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Maps\" />
-  </ItemGroup>
 </Project>

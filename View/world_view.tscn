@@ -1,50 +1,50 @@
 [gd_scene format=3 uid="uid://ce7hi7tlu6lcl"]
 
-[ext_resource type="Script" uid="uid://bebv1ecevaqbb" path="res://Render/WorldRender.cs" id="1_u1tn8"]
-[ext_resource type="Script" uid="uid://0cu3yhgj2f5k" path="res://Render/WorldMapRender.cs" id="2_37bak"]
-[ext_resource type="Script" uid="uid://7ha2kqhy3rjc" path="res://Render/PlayerController.cs" id="2_l2rqx"]
-[ext_resource type="Texture2D" uid="uid://c7oycyslgq773" path="res://Assets/MapTile/Plain_01.png" id="3_8qlfq"]
-[ext_resource type="Texture2D" uid="uid://dgvtem46t1at8" path="res://Assets/MapTile/Forest_01.png" id="3_37bak"]
-[ext_resource type="Script" uid="uid://bqqwhu7307tpm" path="res://Render/PlayerCamera.cs" id="3_ar1c6"]
-[ext_resource type="Texture2D" uid="uid://bbesvpsxgbyyu" path="res://Assets/MapTile/Sea_01.png" id="4_702de"]
-[ext_resource type="Texture2D" uid="uid://d2u7eyn83urum" path="res://Assets/MapTile/Hills_01.png" id="5_oyrfm"]
-[ext_resource type="Texture2D" uid="uid://cpyi3w2p14im1" path="res://Assets/MapTile/Mountains_01.png" id="6_ddhu8"]
-[ext_resource type="Texture2D" uid="uid://dt7k0u64oklme" path="res://Assets/MapTile/Desert_01.png" id="7_bjv8f"]
-[ext_resource type="Texture2D" uid="uid://chf41gcaxlsvy" path="res://Assets/MapTile/Volcanic_01.png" id="8_yeshk"]
-[ext_resource type="Texture2D" uid="uid://bhpgdo8anixjk" path="res://Assets/MapTile/BorderSheet.png" id="10_702de"]
+[ext_resource type="Script" uid="uid://bebv1ecevaqbb" path="res://View/WorldView.cs" id="1_lxpa6"]
+[ext_resource type="Script" uid="uid://0cu3yhgj2f5k" path="res://View/WorldMapRender.cs" id="2_xht7w"]
+[ext_resource type="Texture2D" uid="uid://c7oycyslgq773" path="res://Assets/MapTile/Plain_01.png" id="3_vl3mi"]
+[ext_resource type="Texture2D" uid="uid://bbesvpsxgbyyu" path="res://Assets/MapTile/Sea_01.png" id="4_xjirw"]
+[ext_resource type="Texture2D" uid="uid://d2u7eyn83urum" path="res://Assets/MapTile/Hills_01.png" id="5_fw5vk"]
+[ext_resource type="Texture2D" uid="uid://cpyi3w2p14im1" path="res://Assets/MapTile/Mountains_01.png" id="6_xntal"]
+[ext_resource type="Texture2D" uid="uid://dt7k0u64oklme" path="res://Assets/MapTile/Desert_01.png" id="7_j0to8"]
+[ext_resource type="Texture2D" uid="uid://chf41gcaxlsvy" path="res://Assets/MapTile/Volcanic_01.png" id="8_0evna"]
+[ext_resource type="Texture2D" uid="uid://dgvtem46t1at8" path="res://Assets/MapTile/Forest_01.png" id="9_ws7gu"]
+[ext_resource type="Texture2D" uid="uid://bhpgdo8anixjk" path="res://Assets/MapTile/BorderSheet.png" id="10_hcqbc"]
+[ext_resource type="Script" uid="uid://7ha2kqhy3rjc" path="res://View/PlayerController.cs" id="11_w2bg8"]
+[ext_resource type="Script" uid="uid://bqqwhu7307tpm" path="res://View/PlayerCamera.cs" id="12_wtq7o"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_asxvb"]
-texture = ExtResource("3_8qlfq")
+texture = ExtResource("3_vl3mi")
 margins = Vector2i(12, 30)
 texture_region_size = Vector2i(160, 160)
 0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_3m8lb"]
-texture = ExtResource("4_702de")
+texture = ExtResource("4_xjirw")
 margins = Vector2i(12, 30)
 texture_region_size = Vector2i(160, 160)
 0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_yf1fa"]
-texture = ExtResource("5_oyrfm")
+texture = ExtResource("5_fw5vk")
 margins = Vector2i(12, 30)
 texture_region_size = Vector2i(160, 160)
 0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_wnwyg"]
-texture = ExtResource("6_ddhu8")
+texture = ExtResource("6_xntal")
 margins = Vector2i(12, 20)
 texture_region_size = Vector2i(160, 180)
 0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_78mu5"]
-texture = ExtResource("7_bjv8f")
+texture = ExtResource("7_j0to8")
 margins = Vector2i(12, 30)
 texture_region_size = Vector2i(160, 160)
 0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6aw3a"]
-texture = ExtResource("8_yeshk")
+texture = ExtResource("8_0evna")
 margins = Vector2i(12, 30)
 texture_region_size = Vector2i(160, 160)
 0:0/0 = 0
@@ -60,7 +60,7 @@ sources/4 = SubResource("TileSetAtlasSource_78mu5")
 sources/5 = SubResource("TileSetAtlasSource_6aw3a")
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_xq600"]
-texture = ExtResource("3_37bak")
+texture = ExtResource("9_ws7gu")
 margins = Vector2i(0, 19)
 texture_region_size = Vector2i(186, 186)
 0:0/0 = 0
@@ -71,7 +71,7 @@ tile_size = Vector2i(160, 160)
 sources/6 = SubResource("TileSetAtlasSource_xq600")
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_oyrfm"]
-texture = ExtResource("10_702de")
+texture = ExtResource("10_hcqbc")
 margins = Vector2i(10, 10)
 separation = Vector2i(20, 20)
 texture_region_size = Vector2i(160, 160)
@@ -468,10 +468,10 @@ terrain_set_0/terrain_0/color = Color(0.5, 0.34375, 0.25, 1)
 sources/0 = SubResource("TileSetAtlasSource_oyrfm")
 
 [node name="WorldRender" type="Node" unique_id=246933078]
-script = ExtResource("1_u1tn8")
+script = ExtResource("1_lxpa6")
 
 [node name="WorldMapRender" type="Node2D" parent="." unique_id=1689830667]
-script = ExtResource("2_37bak")
+script = ExtResource("2_xht7w")
 
 [node name="GroundLayer" type="TileMapLayer" parent="WorldMapRender" unique_id=1358870462]
 y_sort_enabled = true
@@ -510,10 +510,10 @@ tile_set = SubResource("TileSet_ddhu8")
 tile_set = SubResource("TileSet_ddhu8")
 
 [node name="PlayerController" type="Node" parent="." unique_id=1219148852]
-script = ExtResource("2_l2rqx")
+script = ExtResource("11_w2bg8")
 
 [node name="Camera2D" type="Camera2D" parent="PlayerController" unique_id=370442349]
-script = ExtResource("3_ar1c6")
+script = ExtResource("12_wtq7o")
 
 [node name="Hud" type="CanvasLayer" parent="PlayerController" unique_id=1375363492]
 
