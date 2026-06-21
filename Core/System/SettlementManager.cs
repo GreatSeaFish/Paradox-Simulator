@@ -8,7 +8,7 @@ namespace ParadoxSimulator.Core
     public class SettlementManager
     {
         /// <summary>
-        /// 由 GameTime 驱动的每日业务结算
+        /// 由 TimeManager 驱动的每日业务结算
         /// </summary>
         public void ExecuteDailySettlement(DateTime date)
         {
@@ -17,7 +17,7 @@ namespace ParadoxSimulator.Core
         }
 
         /// <summary>
-        /// 由 GameTime 驱动的每月业务结算
+        /// 由 TimeManager 驱动的每月业务结算
         /// </summary>
         public void ExecuteMonthlySettlement(DateTime date)
         {

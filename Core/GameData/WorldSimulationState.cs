@@ -10,22 +10,19 @@ namespace ParadoxSimulator.Core.GameData;
 /// </summary>
 public class WorldSimulationState
 {
-    // ================== 实体状态 ==================
+    // ================== 实体 ==================
     // 全房间所有玩家的最新逻辑帧坐标
     public Dictionary<int, FixVector2> PlayerPositions { get; set;} = new Dictionary<int, FixVector2>();
 
     // 地块动态运行时的归属数据 (Key: 坐标, Value: 玩家ID，-1 表示中立)
     public Dictionary<HexCoord, int> TileOwners { get; set;} = new Dictionary<HexCoord, int>();
 
-    // ================== 时钟状态 ==================
+    // ================== 时钟 ==================
     // 累计经历的逻辑帧数
     public int LocalTickCount { get; set; } = 0;
     
     // 游戏经过的天数
     public int GameDays { get; set; } = 0;
-    
-    // 当前时间流速档位 (0=暂停, 1~5=正常速度)
-    public int CurrentSpeedLevel { get; set; } = 0;
     
     // 模拟现实的日历字段 (默认从 1年4月1日 开始)
     public DateTime CurrentDate { get; set; } = new DateTime(1, 4, 1);
@@ -42,11 +39,10 @@ public class WorldSimulationState
         }
     }
     
+    // ==========================================
+    // =====          数据管理方法           =====
+    // ==========================================
     
-    // ==========================================
-    // =====        数据管理辅助方法          =====
-    // ==========================================
-
     /// <summary>
     /// 获取指定地块的归属玩家ID
     /// </summary>

@@ -16,7 +16,7 @@ public partial class CoreHost : Node
     public static GameNetworkManager NetworkManager { get; private set; } = null!;
     public static ClientCommandSender CommandSender { get; private set; } = null!;
     public static ServerCommandHandler CommandHandler { get; private set; } = null!;
-    public static GameTime GameTime { get; private set; } = null!;
+    public static TimeManager TimeManager { get; private set; } = null!;
     public static MapLoader MapLoader { get; private set; } = null!;
     public static SettlementManager SettlementManager { get; private set; } = null!;
     public static GameStateManager StateManager { get; private set; } = null!;
@@ -40,10 +40,10 @@ public partial class CoreHost : Node
         NetworkManager.Initialize();
         
         SettlementManager = new SettlementManager();
-        GameTime = new GameTime(SettlementManager);
+        TimeManager = new TimeManager(SettlementManager, WorldSimulationState);
         
         CommandSender = new ClientCommandSender(NetworkManager, LocalContext);
-        CommandHandler = new ServerCommandHandler(GameTime, LocalContext, WorldSimulationState);
+        CommandHandler = new ServerCommandHandler(TimeManager, LocalContext, WorldSimulationState);
         // 【新增】实例化状态管理器
         StateManager = new GameStateManager(GameState, WorldSimulationState, LocalContext);
         
@@ -54,7 +54,7 @@ public partial class CoreHost : Node
         };
         
         MapLoader = new MapLoader(MapConfig, WorldSimulationState);
-        MapLoader.LoadMapData("Core/WorldMapSystem/Maps/terrain_data.json");
+        MapLoader.LoadMapData("Maps/terrain_data.json");
         
     }
     

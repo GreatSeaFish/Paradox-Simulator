@@ -22,6 +22,6 @@
     <PackageReference Include="LiteNetLib" Version="2.1.4" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Core\WorldMapSystem\Maps\" />
+    <Folder Include="Maps\" />
   </ItemGroup>
 </Project>

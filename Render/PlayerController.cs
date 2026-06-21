@@ -17,15 +17,15 @@ public partial class PlayerController : Node
 
         _timeFlowRateTab.TabClicked += OnTimeTabClicked;
 
-        if (CoreHost.GameTime != null)
+        if (CoreHost.TimeManager != null)
         {
-            CoreHost.GameTime.OnSpeedChanged += OnSpeedChangedSync;
+            CoreHost.TimeManager.OnSpeedChanged += OnSpeedChangedSync;
             
             // 【新增】订阅逻辑层确定性的日期变更事件
-            CoreHost.GameTime.OnDateChanged += OnDateChangedSync; 
+            CoreHost.TimeManager.OnDateChanged += OnDateChangedSync; 
             
             // 【新增】初始化时，立刻根据逻辑层的初始时间刷新一次 UI 文本（显示 第1年4月1日）
-            UpdateCalendarText(CoreHost.GameTime.CurrentDate);
+            UpdateCalendarText(CoreHost.WorldSimulationState.CurrentDate);
         }
         
         _timeFlowRateTab.CurrentTab = 0; 
@@ -33,12 +33,12 @@ public partial class PlayerController : Node
 
     public override void _ExitTree()
     {
-        if (CoreHost.GameTime != null)
+        if (CoreHost.TimeManager != null)
         {
-            CoreHost.GameTime.OnSpeedChanged -= OnSpeedChangedSync;
+            CoreHost.TimeManager.OnSpeedChanged -= OnSpeedChangedSync;
             
             // 【新增】安全注销事件，防止切场景内存泄漏
-            CoreHost.GameTime.OnDateChanged -= OnDateChangedSync; 
+            CoreHost.TimeManager.OnDateChanged -= OnDateChangedSync; 
         }
     }
 

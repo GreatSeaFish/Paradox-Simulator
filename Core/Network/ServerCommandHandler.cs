@@ -10,7 +10,7 @@ namespace ParadoxSimulator.Core
     /// 服务端指令处理中心（客户端逻辑驱动核心）
     /// 职责：管理客户端逻辑帧的推进、实现抖动缓冲区（Jitter Buffer）、弹性追帧决策与确定性状态计算。
     /// </summary>
-    public class ServerCommandHandler(GameTime gameTime, LocalContext localContext, WorldSimulationState worldSimulationState)
+    public class ServerCommandHandler(TimeManager timeManager, LocalContext localContext, WorldSimulationState worldSimulationState)
     {
         // ===== 帧缓冲区 (Jitter Buffer) =====
         // 存放从网络层（网络线程/轮询）推过来的原生服务器逻辑帧，Key 是 FrameId，Value 是该帧包含的所有指令
@@ -182,7 +182,7 @@ namespace ParadoxSimulator.Core
                     case 2: // 系统指令：时间控制
                         // 直接从指令的 ActionValue 中拿到档位，驱动时钟
                         // 如果多个人在同一帧都按了调速，那么以最后一个指令为准，所有人表现依然绝对一致
-                        gameTime.SetTimeSpeed(cmd.ActionValue);
+                        timeManager.SetTimeSpeed(cmd.ActionValue);
                         break;
                 }
             }
@@ -190,7 +190,7 @@ namespace ParadoxSimulator.Core
             // 4. 逻辑推进完毕，状态机时钟步进
             _localRenderFrameId++; // 当前期待帧号向前进1，指向下一帧
             
-            gameTime.Tick();
+            timeManager.Tick();
             
             return true; // 成功消化完一帧
         }
