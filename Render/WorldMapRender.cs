@@ -42,7 +42,7 @@ public partial class WorldMapRender : Node2D
         _groundLayer.Clear();
         _surfaceLayer?.Clear();
 
-        var mapData = CoreHost.MapData;
+        var mapData = CoreHost.MapConfig;
         if (mapData == null || mapData.Tiles.Count == 0)
         {
             GD.PrintErr("[MapRender] 错误: 核心层 MapData 未初始化或没有数据！");
@@ -76,7 +76,7 @@ public partial class WorldMapRender : Node2D
     // [更新] 领地渲染逻辑：使用 Godot 的 Terrain 自动连接
     public void UpdateOwnershipVisuals()
     {
-        var mapData = CoreHost.MapData;
+        var mapData = CoreHost.WorldSimulationState;
         if (mapData == null) return;
 
         // 1. 准备 8 个列表，用于对被占领的坐标进行按玩家分组
@@ -93,7 +93,7 @@ public partial class WorldMapRender : Node2D
             if (ownerId != -1) 
             {
                 // 通过 PlayerId 找到该玩家的大厅配置信息
-                var playerInfo = LocalClientInfo.LobbyPlayers.Find(p => p.PlayerId == ownerId);
+                var playerInfo = CoreHost.LocalContext.LobbyPlayers.Find(p => p.PlayerId == ownerId);
                 if (playerInfo != null)
                 {
                     var offset = MapRenderBridge.CubeToOffset(kvp.Key.X, kvp.Key.Y, kvp.Key.Z);
@@ -122,7 +122,7 @@ public partial class WorldMapRender : Node2D
                 targetLayer.SetCellsTerrainConnect(layerCells[i], 0, 0, false);
 
                 // 找到在这个位置上的玩家，将图层整体染成他选的颜色
-                var playerInfo = LocalClientInfo.LobbyPlayers.Find(p => p.SlotId == i);
+                var playerInfo = CoreHost.LocalContext.LobbyPlayers.Find(p => p.SlotId == i);
                 if (playerInfo != null)
                 {
                     targetLayer.Modulate = _colorValues[playerInfo.ColorId];

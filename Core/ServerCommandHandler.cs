@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using FixedMath.NET;
+using ParadoxSimulator.Core.GameData;
 using Shared.Protocol;
 
 namespace ParadoxSimulator.Core
@@ -9,7 +10,7 @@ namespace ParadoxSimulator.Core
     /// 服务端指令处理中心（客户端逻辑驱动核心）
     /// 职责：管理客户端逻辑帧的推进、实现抖动缓冲区（Jitter Buffer）、弹性追帧决策与确定性状态计算。
     /// </summary>
-    public class ServerCommandHandler(GameTime gameTime)
+    public class ServerCommandHandler(GameTime gameTime, LocalContext localContext, WorldSimulationState worldSimulationState)
     {
         // ===== 帧缓冲区 (Jitter Buffer) =====
         // 存放从网络层（网络线程/轮询）推过来的原生服务器逻辑帧，Key 是 FrameId，Value 是该帧包含的所有指令
@@ -64,7 +65,7 @@ namespace ParadoxSimulator.Core
         public void Update(double delta)
         {
             // 还没连接成功或者还没拿到合法玩家ID之前，直接罢工，什么都不算
-            if (LocalClientInfo.MyPlayerId == -1) return;
+            if (localContext.MyPlayerId == -1) return;
 
             // 1. 累加渲染帧的 delta 时间（把渲染时间转化为逻辑时间储备）
             _logicTimer += delta;
@@ -170,11 +171,11 @@ namespace ParadoxSimulator.Core
                 {
                     case 1: // 移动指令
                         // 检查此玩家在当前局内是否存在位置数据
-                        if (GlobalPlayerState.PlayerPositions.ContainsKey(cmd.PlayerId))
+                        if (worldSimulationState.PlayerPositions.ContainsKey(cmd.PlayerId))
                         {
                             // 严格使用定点数（Fix64）进行纯位移数学运算：新位置 = 旧位置 + 移动方向 * 速度因子
                             // 绝对不涉及 Godot 的 Node 节点坐标，纯内存数学计算，多端完全一致
-                            GlobalPlayerState.PlayerPositions[cmd.PlayerId] += cmd.MoveDirection * Fix64.One;
+                            worldSimulationState.PlayerPositions[cmd.PlayerId] += cmd.MoveDirection * Fix64.One;
                         }
                         break;
                         

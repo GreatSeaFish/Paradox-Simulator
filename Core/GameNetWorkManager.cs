@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using ParadoxSimulator.Core.GameData;
 using Shared.Protocol;
 
 namespace ParadoxSimulator.Core
@@ -10,7 +11,7 @@ namespace ParadoxSimulator.Core
     /// 客户端网络管理器
     /// 职责：负责底层的物理连接管理、网络事件轮询、自定义二进制协议的打包发送与解包分发中心。
     /// </summary>
-    public class GameNetworkManager
+    public class GameNetworkManager(LocalContext localContext)
     {
         // LiteNetLib 核心组件：负责管理物理连接、网络吞吐和线程安全
         private NetManager _client = null!;
@@ -75,8 +76,8 @@ namespace ParadoxSimulator.Core
                         initPacket.Deserialize(dataReader);
                         
                         // C. 写入静态客户端全局缓存：记录我在这局游戏中的唯一身份 ID
-                        LocalClientInfo.MyPlayerId = initPacket.AssignedPlayerId;
-                        ClientDebuger.LogHandler?.Invoke($"[Client] 收到开局分配ID: {LocalClientInfo.MyPlayerId}");
+                        localContext.MyPlayerId = initPacket.AssignedPlayerId;
+                        ClientDebuger.LogHandler?.Invoke($"[Client] 收到开局分配ID: {localContext.MyPlayerId}");
                         
                         // D. 【事件分发】：向外抛出事件，通知挂载了此事件的UI页面（如隐藏登录中，提示连接大厅）
                         OnInitReceived?.Invoke(initPacket.AssignedPlayerId);
@@ -88,7 +89,7 @@ namespace ParadoxSimulator.Core
                         syncPacket.Deserialize(dataReader);
                         
                         // B. 全量覆盖缓存本地的大厅数据（供各处随时读取）
-                        LocalClientInfo.LobbyPlayers = syncPacket.Players;
+                        localContext.LobbyPlayers = syncPacket.Players;
                         
                         // C. 【事件分发】：通知大厅 UI 页面重新生成玩家方块、名字和准备标签
                         OnLobbySyncReceived?.Invoke(syncPacket.Players);

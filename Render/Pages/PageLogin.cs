@@ -46,7 +46,7 @@ public partial class PageLogin : Control
             CoreHost.NetworkManager.OnInitReceived += OnConnectedAndInit;
             CoreHost.NetworkManager.OnLobbySyncReceived += OnFirstLobbySync;
 
-            LocalClientInfo.MyNickname = nickname; // 保存本地昵称
+            CoreHost.LocalContext.MyNickname = nickname; // 保存本地昵称
             CoreHost.ConnectToServer(ip, port);
         }
         catch (Exception ex)
@@ -62,7 +62,7 @@ public partial class PageLogin : Control
         _stateLabel.Text += $"\n连接成功！我的ID是: {myId}。正在加入大厅...";
         
         // 构建并发送加入大厅请求
-        var joinPacket = new ClientJoinLobbyPacket { Nickname = LocalClientInfo.MyNickname };
+        var joinPacket = new ClientJoinLobbyPacket { Nickname = CoreHost.LocalContext.MyNickname };
         CoreHost.NetworkManager.SendPacket(PacketType.ClientJoinLobby, joinPacket);
     }
 

@@ -43,7 +43,7 @@ public partial class PageLobby : Control
         CoreHost.NetworkManager.OnGameStartReceived += OnGameStart;
 
         // 页面加载完毕时，先拿缓存的数据刷一次 UI
-        UpdateLobbyUI(LocalClientInfo.LobbyPlayers);
+        UpdateLobbyUI(CoreHost.LocalContext.LobbyPlayers);
     }
 
     public override void _ExitTree()
@@ -66,7 +66,7 @@ public partial class PageLobby : Control
             child.QueueFree();
         }
 
-        int myId = LocalClientInfo.MyPlayerId;
+        int myId = CoreHost.LocalContext.MyPlayerId;
         LobbyPlayerInfo? myInfo = null;
 
         // 2. 重新生成玩家列表
@@ -139,7 +139,7 @@ public partial class PageLobby : Control
     private void OnReadyButtonPressed()
     {
         // 本地获取当前状态并取反
-        var myInfo = LocalClientInfo.LobbyPlayers.FirstOrDefault(p => p.PlayerId == LocalClientInfo.MyPlayerId);
+        var myInfo = CoreHost.LocalContext.LobbyPlayers.FirstOrDefault(p => p.PlayerId == CoreHost.LocalContext.MyPlayerId);
         if (myInfo != null)
         {
             bool nextState = !myInfo.IsReady;

@@ -1,38 +1,51 @@
 using Godot;
 using System;
 using ParadoxSimulator.Core;
+using ParadoxSimulator.Core.GameData;
 using ParadoxSimulator.Core.WorldMapSystem;
 
 public partial class CoreHost : Node
 {
+    // ================== 数据仓库 (Data) ==================
+    public static LocalContext LocalContext { get; private set; } = null!;
+    public static WorldSimulationState WorldSimulationState { get; private set; } = null!;
+    public static MapConfig MapConfig { get; private set; } = null!;
+    public static GameState GameState { get; private set; } = null!;
+
+    // ================== 系统管理器 (Systems) ==================
     public static GameNetworkManager NetworkManager { get; private set; } = null!;
     public static ClientCommandSender CommandSender { get; private set; } = null!;
     public static ServerCommandHandler CommandHandler { get; private set; } = null!;
     public static GameTime GameTime { get; private set; } = null!;
+    public static MapLoader MapLoader { get; private set; } = null!;
     public static SettlementManager SettlementManager { get; private set; } = null!;
-    // 【新增】全局共享的地图数据中心
-    public static MapData MapData { get; private set; } = null!;
     public static GameStateManager StateManager { get; private set; } = null!;
+    
     
     
     public override void _Ready()
     {
         GD.Print("[CoreLauncher] 正在初始化核心网络与逻辑模块...");
-        
         ClientDebuger.LogHandler = (msg) => GD.Print(msg);
         ClientDebuger.WarningHandler = (msg) => GD.PrintRich($"[color=yellow]{msg}[/color]");
+        
+        
+        GameState = new GameState();
+        LocalContext = new LocalContext();
+        WorldSimulationState = new WorldSimulationState();
+        MapConfig = new MapConfig();
 
         // 1. 仅做实例化和本地初始化，不直接进行网络连接
-        NetworkManager = new GameNetworkManager();
+        NetworkManager = new GameNetworkManager(LocalContext);
         NetworkManager.Initialize();
         
         SettlementManager = new SettlementManager();
         GameTime = new GameTime(SettlementManager);
         
-        CommandSender = new ClientCommandSender(NetworkManager);
-        CommandHandler = new ServerCommandHandler(GameTime);
+        CommandSender = new ClientCommandSender(NetworkManager, LocalContext);
+        CommandHandler = new ServerCommandHandler(GameTime, LocalContext, WorldSimulationState);
         // 【新增】实例化状态管理器
-        StateManager = new GameStateManager();
+        StateManager = new GameStateManager(GameState, WorldSimulationState, LocalContext);
         
         // 【新增】绑定开局事件：当网络层收到开局包时，立刻在逻辑层完成状态切换和数据准备
         NetworkManager.OnGameStartReceived += () => 
@@ -40,13 +53,8 @@ public partial class CoreHost : Node
             StateManager.StartGame();
         };
         
-        
-        
-        // 2. 【新增】初始化地图数据
-        MapData = new MapData();
-        string projectRoot = ProjectSettings.GlobalizePath("res://");
-        string jsonPath = System.IO.Path.Combine(projectRoot, "Core", "WorldMapSystem", "Maps", "terrain_data.json");
-        MapData.LoadMapData(jsonPath);
+        MapLoader = new MapLoader(MapConfig, WorldSimulationState);
+        MapLoader.LoadMapData("Core/WorldMapSystem/Maps/terrain_data.json");
         
     }
     

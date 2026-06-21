@@ -2,7 +2,8 @@ using Godot;
 using System.Collections.Generic;
 using FixedMath.NET;
 using Shared.Math;
-using ParadoxSimulator.Core; 
+using ParadoxSimulator.Core;
+using ParadoxSimulator.Core.GameData;
 
 public partial class WorldRender : Node
 {
@@ -24,7 +25,7 @@ public partial class WorldRender : Node
         mapRender.UpdateOwnershipVisuals();
         
         // 2. 根据大厅名单动态生成 Godot 渲染节点
-        foreach (var player in LocalClientInfo.LobbyPlayers) 
+        foreach (var player in CoreHost.LocalContext.LobbyPlayers) 
         {
             var rect = new Godot.ColorRect
             {
@@ -50,16 +51,16 @@ public partial class WorldRender : Node
         if (godotDir != Vector2.Zero)
         {
             godotDir = godotDir.Normalized(); 
-            GlobalPlayerState.SetLocalInput(new FixVector2((Fix64)godotDir.X, (Fix64)godotDir.Y)); 
+            CoreHost.LocalContext.SetLocalInput(new FixVector2((Fix64)godotDir.X, (Fix64)godotDir.Y)); 
         }
         else
         {
-            GlobalPlayerState.SetLocalInput(FixVector2.Zero); 
+            CoreHost.LocalContext.SetLocalInput(FixVector2.Zero); 
         }
 
         // ==================== 2. 移除平滑插值，直接渲染 ====================
         // 直接抓取当前最新的绝对逻辑坐标
-        GlobalPlayerState.GetLogicalPositions(_currentPositions);
+        CoreHost.WorldSimulationState.GetLogicalPositions(_currentPositions);
 
         float worldScale = 50f; // 缩放因子：1个逻辑单位 = 50个屏幕像素 
         Vector2 screenCenter = new Vector2(500f, 400f); // 屏幕中心偏移 

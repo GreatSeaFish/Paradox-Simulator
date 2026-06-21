@@ -1,6 +1,7 @@
 ﻿using FixedMath.NET;
 using LiteNetLib;
 using LiteNetLib.Utils;
+using ParadoxSimulator.Core.GameData;
 using Shared.Math;
 using Shared.Protocol;
 
@@ -15,6 +16,8 @@ namespace ParadoxSimulator.Core
     {
         // 核心组件依赖：通过网络管理器拿到与服务器的连接（Peer）
         private readonly GameNetworkManager _networkManager;
+
+        private LocalContext _localContext;
         
         // 记录距离上一次发包过去了多少秒。由于移除了独立线程，我们用这个变量在主线程里“数时间”
         private double _packetTimer = 0.0;
@@ -28,9 +31,10 @@ namespace ParadoxSimulator.Core
         /// <summary>
         /// 构造函数：在初始化时注入网络管理器
         /// </summary>
-        public ClientCommandSender(GameNetworkManager networkManager)
+        public ClientCommandSender(GameNetworkManager networkManager, LocalContext localContext)
         {
             _networkManager = networkManager;
+            _localContext = localContext;
         }
 
 
@@ -65,9 +69,9 @@ namespace ParadoxSimulator.Core
             int playerId;     // 存储本地玩家ID
 
             // 1. 采集输入：直接读取由渲染层（WorldRender.cs）高频写入的最新本地输入方向
-            dir = GlobalPlayerState.LocalInputDirection;
+            dir = _localContext.LocalInputDirection;
             // 2. 采集身份：获取本地玩家当前被分配的唯一 ID
-            playerId = LocalClientInfo.MyPlayerId;
+            playerId = _localContext.MyPlayerId;
 
             // 3. 【发包防御】：只有同时满足以下条件才向服务器发送网络包：
             //    - 本地已成功分配到合法的玩家ID (playerId != -1)
@@ -115,7 +119,7 @@ namespace ParadoxSimulator.Core
         /// </summary>
         public void SendTimeSpeedCommand(int speedLevel)
         {
-            int playerId = LocalClientInfo.MyPlayerId;
+            int playerId = _localContext.MyPlayerId;
             
             // 安全防御：如果没有合法ID或断网，则不发包
             if (playerId == -1 || _networkManager.ServerPeer == null) return;

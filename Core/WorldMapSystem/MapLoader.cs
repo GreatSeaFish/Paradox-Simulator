@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using ParadoxSimulator.Core.GameData;
 
 namespace ParadoxSimulator.Core.WorldMapSystem;
 
-public class MapLoader 
+public class MapLoader(MapConfig config, WorldSimulationState simulationState)
 {
 
     public class MapExportData
@@ -30,6 +31,33 @@ public class MapLoader
         catch (Exception ex)
         {
             throw new Exception($"解析地图 JSON 失败: {ex.Message}", ex);
+        }
+    }
+    
+    /// <summary>
+    /// 加载并解析地图数据
+    /// </summary>
+    public void LoadMapData(string jsonPath)
+    {
+        config.Tiles.Clear();
+        simulationState.TileOwners.Clear(); // 【新增】每次重新加载地图时，清空归属数据
+        
+        try
+        {
+            var mapExportData = LoadMap(jsonPath);
+            foreach (var tile in mapExportData.Tiles)
+            {
+                var coord = new HexCoord(tile.X, tile.Y, tile.Z);
+                config.Tiles[coord] = tile;
+                
+                // 【新增】初始化时，所有地块默认归属为 -1（中立）
+                simulationState.TileOwners[coord] = -1; 
+            }
+            ClientDebuger.LogHandler?.Invoke($"[MapData] 成功加载并构建地图数据，共 {config.Tiles.Count} 个地块。");
+        }
+        catch (Exception ex)
+        {
+            ClientDebuger.LogHandler?.Invoke($"[MapData] 加载地图失败: {ex.Message}");
         }
     }
 }
