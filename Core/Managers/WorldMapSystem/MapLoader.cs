@@ -53,11 +53,11 @@ public class MapLoader(MapConfig config, WorldSimulationState simulationState)
                 // 【新增】初始化时，所有地块默认归属为 -1（中立）
                 simulationState.TileOwners[coord] = -1; 
             }
-            ClientDebuger.LogHandler?.Invoke($"[MapData] 成功加载并构建地图数据，共 {config.Tiles.Count} 个地块。");
+            ClientDebugger.LogHandler?.Invoke($"[MapData] 成功加载并构建地图数据，共 {config.Tiles.Count} 个地块。");
         }
         catch (Exception ex)
         {
-            ClientDebuger.LogHandler?.Invoke($"[MapData] 加载地图失败: {ex.Message}");
+            ClientDebugger.LogHandler?.Invoke($"[MapData] 加载地图失败: {ex.Message}");
         }
     }
 }

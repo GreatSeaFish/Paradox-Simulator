@@ -23,7 +23,7 @@ namespace ParadoxSimulator.Core
             if (gameState.CurrentState == GamePhase.Playing) return;
 
             gameState.CurrentState = GamePhase.Playing;
-            ClientDebuger.LogHandler?.Invoke("[GameStateManager] 状态切换为: Playing，开始初始化游戏逻辑数据...");
+            ClientDebugger.LogHandler?.Invoke("[GameStateManager] 状态切换为: Playing，开始初始化游戏逻辑数据...");
 
             // ==========================================
             // 把原先 GlobalPlayerState.InitializeGame() 的逻辑移到这里

@@ -140,7 +140,7 @@ namespace ParadoxSimulator.Core
             cmd.Serialize(_cachedWriter);
             _networkManager.ServerPeer.Send(_cachedWriter, DeliveryMethod.ReliableOrdered);
             
-            ClientDebuger.LogHandler?.Invoke($"[Client] 发送调速请求: {speedLevel}档");
+            ClientDebugger.LogHandler?.Invoke($"[Client] 发送调速请求: {speedLevel}档");
         }
     }
     

@@ -40,7 +40,7 @@ namespace ParadoxSimulator.Core
         {
             // 防御性编程：将传入的档位钳制在 0-5 范围内，防止恶意发包越界
             _currentSpeedLevel = Math.Clamp(level, 0, 5);
-            ClientDebuger.LogHandler?.Invoke($"[TimeManager] 时间流速确切切换至: {_currentSpeedLevel} 档");
+            ClientDebugger.LogHandler?.Invoke($"[TimeManager] 时间流速确切切换至: {_currentSpeedLevel} 档");
             
             // 触发事件，通知表现层刷新 UI 的 Tab 高亮
             OnSpeedChanged?.Invoke(_currentSpeedLevel);

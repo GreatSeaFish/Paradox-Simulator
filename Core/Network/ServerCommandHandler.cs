@@ -87,7 +87,7 @@ namespace ParadoxSimulator.Core
                         if (_frameBuffer.ContainsKey(1) && _frameBuffer.ContainsKey(2))
                         {
                             _isBufferReady = true;
-                            ClientDebuger.LogHandler?.Invoke("[Client] 缓冲区已攒够，开始平滑驱动逻辑！");
+                            ClientDebugger.LogHandler?.Invoke("[Client] 缓冲区已攒够，开始平滑驱动逻辑！");
                         }
                         else
                         {
@@ -119,7 +119,7 @@ namespace ParadoxSimulator.Core
                 {
                     // 【激进追帧】：切后台或者断线重连恢复后，积压了几百帧，直接把积压的所有帧一口气跑完！
                     stepsToRun = framesInCount;
-                    ClientDebuger.LogHandler?.Invoke($"[Client] 检测到严重积压({framesInCount}帧)，触发断线重连快速追帧！");
+                    ClientDebugger.LogHandler?.Invoke($"[Client] 检测到严重积压({framesInCount}帧)，触发断线重连快速追帧！");
                 }
                 else if (framesInCount > CatchUpThreshold)
                 {
@@ -160,7 +160,7 @@ namespace ParadoxSimulator.Core
             // 安全防御：万一真的没拿到（虽然前面检查过了，但这里做双重保险），进入卡顿等待
             if (currentFramePacket == null)
             {
-                ClientDebuger.LogHandler?.Invoke($"[Warning] 网络卡顿！客户端缺少 Frame {_localRenderFrameId}，进入等待...");
+                ClientDebugger.LogHandler?.Invoke($"[Warning] 网络卡顿！客户端缺少 Frame {_localRenderFrameId}，进入等待...");
                 return false;
             }
 

@@ -56,7 +56,7 @@ namespace ParadoxSimulator.Core
             // 2. 注册物理连接成功回调
             _listener.PeerConnectedEvent += peer =>
             {
-               ClientDebuger.LogHandler?.Invoke($"[Client] 已成功连接服务器，等待服务器分配 ID...");
+               ClientDebugger.LogHandler?.Invoke($"[Client] 已成功连接服务器，等待服务器分配 ID...");
             };
 
             // 3. 【网络核心】注册消息接收回调：只要服务器发包过来，底层的网络管道就会把二进制流带进这个 Lambda 闭包中
@@ -77,7 +77,7 @@ namespace ParadoxSimulator.Core
                         
                         // C. 写入静态客户端全局缓存：记录我在这局游戏中的唯一身份 ID
                         localContext.MyPlayerId = initPacket.AssignedPlayerId;
-                        ClientDebuger.LogHandler?.Invoke($"[Client] 收到开局分配ID: {localContext.MyPlayerId}");
+                        ClientDebugger.LogHandler?.Invoke($"[Client] 收到开局分配ID: {localContext.MyPlayerId}");
                         
                         // D. 【事件分发】：向外抛出事件，通知挂载了此事件的UI页面（如隐藏登录中，提示连接大厅）
                         OnInitReceived?.Invoke(initPacket.AssignedPlayerId);
@@ -96,7 +96,7 @@ namespace ParadoxSimulator.Core
                         break;
 
                     case PacketType.ServerGameStart:
-                        ClientDebuger.LogHandler?.Invoke($"[Client] 收到开局指令，准备切入游戏！");
+                        ClientDebugger.LogHandler?.Invoke($"[Client] 收到开局指令，准备切入游戏！");
                         // 【事件分发】：通知 UI 层，执行 GetTree().ChangeSceneToFile() 切入联机对战主舞台场景
                         OnGameStartReceived?.Invoke();
                         break;

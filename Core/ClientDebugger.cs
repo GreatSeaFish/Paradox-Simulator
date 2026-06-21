@@ -2,7 +2,7 @@
 
 namespace ParadoxSimulator.Core;
 
-public class ClientDebuger
+public class ClientDebugger
 {
     // 全局日志委托
     public static Action<string> LogHandler { get; set; } = Console.WriteLine;

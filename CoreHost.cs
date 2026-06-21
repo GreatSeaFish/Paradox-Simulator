@@ -26,8 +26,8 @@ public partial class CoreHost : Node
     public override void _Ready()
     {
         GD.Print("[CoreLauncher] 正在初始化核心网络与逻辑模块...");
-        ClientDebuger.LogHandler = (msg) => GD.Print(msg);
-        ClientDebuger.WarningHandler = (msg) => GD.PrintRich($"[color=yellow]{msg}[/color]");
+        ClientDebugger.LogHandler = (msg) => GD.Print(msg);
+        ClientDebugger.WarningHandler = (msg) => GD.PrintRich($"[color=yellow]{msg}[/color]");
         
         
         GameState = new GameState();

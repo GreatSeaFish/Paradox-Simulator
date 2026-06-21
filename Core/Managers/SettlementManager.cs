@@ -12,7 +12,7 @@ namespace ParadoxSimulator.Core
         /// </summary>
         public void ExecuteDailySettlement(DateTime date)
         {
-            ClientDebuger.LogHandler?.Invoke($"[SettlementManager] 触发【日结算】业务逻辑。当前游戏日期: {date:yyyy-MM-dd}");
+            ClientDebugger.LogHandler?.Invoke($"[SettlementManager] 触发【日结算】业务逻辑。当前游戏日期: {date:yyyy-MM-dd}");
             // TODO: 在这里处理每日流失、资源产出等与回合/阵营相关的业务
         }
 
@@ -21,7 +21,7 @@ namespace ParadoxSimulator.Core
         /// </summary>
         public void ExecuteMonthlySettlement(DateTime date)
         {
-            ClientDebuger.LogHandler?.Invoke($"[SettlementManager] 触发【月结算】业务逻辑！！！当前游戏月份: {date:yyyy-MM}");
+            ClientDebugger.LogHandler?.Invoke($"[SettlementManager] 触发【月结算】业务逻辑！！！当前游戏月份: {date:yyyy-MM}");
             // TODO: 在这里处理每月税收、军队维护费扣除、大事件刷新等深层业务
         }
     }
