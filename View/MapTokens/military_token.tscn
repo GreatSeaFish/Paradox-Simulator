@@ -3,3 +3,11 @@
 [node name="MilitaryToken" type="Node2D" unique_id=1916310380]
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1497660500]
+
+[node name="Label" type="Label" parent="." unique_id=702094673]
+offset_right = 120.0
+offset_bottom = 23.0
+
+[node name="ColorRect" type="ColorRect" parent="." unique_id=1477430517]
+offset_right = 40.0
+offset_bottom = 40.0

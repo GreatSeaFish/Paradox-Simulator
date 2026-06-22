@@ -1,51 +1,54 @@
 [gd_scene format=3 uid="uid://ce7hi7tlu6lcl"]
 
-[ext_resource type="Script" uid="uid://bebv1ecevaqbb" path="res://View/WorldView.cs" id="1_lxpa6"]
-[ext_resource type="Script" uid="uid://0cu3yhgj2f5k" path="res://View/WorldMapRender.cs" id="2_xht7w"]
-[ext_resource type="Texture2D" uid="uid://c7oycyslgq773" path="res://Assets/MapTile/Plain_01.png" id="3_vl3mi"]
-[ext_resource type="Texture2D" uid="uid://bbesvpsxgbyyu" path="res://Assets/MapTile/Sea_01.png" id="4_xjirw"]
-[ext_resource type="Texture2D" uid="uid://d2u7eyn83urum" path="res://Assets/MapTile/Hills_01.png" id="5_fw5vk"]
-[ext_resource type="Texture2D" uid="uid://cpyi3w2p14im1" path="res://Assets/MapTile/Mountains_01.png" id="6_xntal"]
-[ext_resource type="Texture2D" uid="uid://dt7k0u64oklme" path="res://Assets/MapTile/Desert_01.png" id="7_j0to8"]
-[ext_resource type="Texture2D" uid="uid://chf41gcaxlsvy" path="res://Assets/MapTile/Volcanic_01.png" id="8_0evna"]
-[ext_resource type="Texture2D" uid="uid://dgvtem46t1at8" path="res://Assets/MapTile/Forest_01.png" id="9_ws7gu"]
-[ext_resource type="Texture2D" uid="uid://bhpgdo8anixjk" path="res://Assets/MapTile/BorderSheet.png" id="10_hcqbc"]
-[ext_resource type="Script" uid="uid://7ha2kqhy3rjc" path="res://View/PlayerController.cs" id="11_w2bg8"]
-[ext_resource type="Texture2D" uid="uid://d1a82mld3fmul" path="res://Assets/SelectMark.png" id="11_xht7w"]
-[ext_resource type="Script" uid="uid://bqqwhu7307tpm" path="res://View/PlayerCamera.cs" id="12_wtq7o"]
+[ext_resource type="Script" uid="uid://bebv1ecevaqbb" path="res://View/MainGameView.cs" id="1_abigp"]
+[ext_resource type="Script" uid="uid://0cu3yhgj2f5k" path="res://View/WorldMapRender.cs" id="2_iel32"]
+[ext_resource type="Texture2D" uid="uid://c7oycyslgq773" path="res://Assets/MapTile/Plain_01.png" id="3_t6qa7"]
+[ext_resource type="Texture2D" uid="uid://bbesvpsxgbyyu" path="res://Assets/MapTile/Sea_01.png" id="4_4kru3"]
+[ext_resource type="Texture2D" uid="uid://d2u7eyn83urum" path="res://Assets/MapTile/Hills_01.png" id="5_il77p"]
+[ext_resource type="Texture2D" uid="uid://cpyi3w2p14im1" path="res://Assets/MapTile/Mountains_01.png" id="6_hy0gp"]
+[ext_resource type="Texture2D" uid="uid://dt7k0u64oklme" path="res://Assets/MapTile/Desert_01.png" id="7_luv0c"]
+[ext_resource type="Texture2D" uid="uid://chf41gcaxlsvy" path="res://Assets/MapTile/Volcanic_01.png" id="8_mx1os"]
+[ext_resource type="Texture2D" uid="uid://dgvtem46t1at8" path="res://Assets/MapTile/Forest_01.png" id="9_e5jv3"]
+[ext_resource type="Script" uid="uid://cp5tgm36lis0m" path="res://View/Interaction/TerritoryVisualizer.cs" id="10_4kru3"]
+[ext_resource type="Texture2D" uid="uid://bhpgdo8anixjk" path="res://Assets/MapTile/BorderSheet.png" id="10_5jpa1"]
+[ext_resource type="Texture2D" uid="uid://d1a82mld3fmul" path="res://Assets/SelectMark.png" id="11_rcan4"]
+[ext_resource type="Script" uid="uid://bkp1w3ofg4udx" path="res://View/Interaction/MapInputHandler.cs" id="12_dj4t6"]
+[ext_resource type="Script" uid="uid://bqqwhu7307tpm" path="res://View/PlayerCamera.cs" id="13_jposj"]
+[ext_resource type="Script" uid="uid://byn3v6nw4j3co" path="res://View/Components/FundsDisplayBar.cs" id="15_il77p"]
+[ext_resource type="Script" uid="uid://b41v4grqjd1oc" path="res://View/Components/TileInspectorPanel.cs" id="16_hy0gp"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_asxvb"]
-texture = ExtResource("3_vl3mi")
+texture = ExtResource("3_t6qa7")
 margins = Vector2i(12, 30)
 texture_region_size = Vector2i(160, 160)
 0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_3m8lb"]
-texture = ExtResource("4_xjirw")
+texture = ExtResource("4_4kru3")
 margins = Vector2i(12, 30)
 texture_region_size = Vector2i(160, 160)
 0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_yf1fa"]
-texture = ExtResource("5_fw5vk")
+texture = ExtResource("5_il77p")
 margins = Vector2i(12, 30)
 texture_region_size = Vector2i(160, 160)
 0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_wnwyg"]
-texture = ExtResource("6_xntal")
+texture = ExtResource("6_hy0gp")
 margins = Vector2i(12, 20)
 texture_region_size = Vector2i(160, 180)
 0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_78mu5"]
-texture = ExtResource("7_j0to8")
+texture = ExtResource("7_luv0c")
 margins = Vector2i(12, 30)
 texture_region_size = Vector2i(160, 160)
 0:0/0 = 0
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_6aw3a"]
-texture = ExtResource("8_0evna")
+texture = ExtResource("8_mx1os")
 margins = Vector2i(12, 30)
 texture_region_size = Vector2i(160, 160)
 0:0/0 = 0
@@ -61,7 +64,7 @@ sources/4 = SubResource("TileSetAtlasSource_78mu5")
 sources/5 = SubResource("TileSetAtlasSource_6aw3a")
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_xq600"]
-texture = ExtResource("9_ws7gu")
+texture = ExtResource("9_e5jv3")
 margins = Vector2i(0, 19)
 texture_region_size = Vector2i(186, 186)
 0:0/0 = 0
@@ -72,7 +75,7 @@ tile_size = Vector2i(160, 160)
 sources/6 = SubResource("TileSetAtlasSource_xq600")
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_oyrfm"]
-texture = ExtResource("10_hcqbc")
+texture = ExtResource("10_5jpa1")
 margins = Vector2i(10, 10)
 separation = Vector2i(20, 20)
 texture_region_size = Vector2i(160, 160)
@@ -468,11 +471,11 @@ terrain_set_0/terrain_0/name = "MatchSides"
 terrain_set_0/terrain_0/color = Color(0.5, 0.34375, 0.25, 1)
 sources/0 = SubResource("TileSetAtlasSource_oyrfm")
 
-[node name="WorldView" type="Node" unique_id=246933078]
-script = ExtResource("1_lxpa6")
+[node name="MainGameView" type="Node" unique_id=246933078]
+script = ExtResource("1_abigp")
 
 [node name="WorldMapRender" type="Node2D" parent="." unique_id=1689830667]
-script = ExtResource("2_xht7w")
+script = ExtResource("2_iel32")
 
 [node name="GroundLayer" type="TileMapLayer" parent="WorldMapRender" unique_id=1358870462]
 y_sort_enabled = true
@@ -483,6 +486,7 @@ y_sort_enabled = true
 tile_set = SubResource("TileSet_rwekf")
 
 [node name="OwnershipFilter" type="Node2D" parent="WorldMapRender" unique_id=2082662316]
+script = ExtResource("10_4kru3")
 
 [node name="TerritorialMarkLayers" type="Node2D" parent="WorldMapRender/OwnershipFilter" unique_id=258327207]
 
@@ -510,19 +514,19 @@ tile_set = SubResource("TileSet_ddhu8")
 [node name="Player8" type="TileMapLayer" parent="WorldMapRender/OwnershipFilter/TerritorialMarkLayers" unique_id=2029674206]
 tile_set = SubResource("TileSet_ddhu8")
 
-[node name="SelectMark" type="Sprite2D" parent="WorldMapRender" unique_id=2133703727]
+[node name="MapInputHandler" type="Node2D" parent="WorldMapRender" unique_id=1334179884]
+script = ExtResource("12_dj4t6")
+
+[node name="SelectMark" type="Sprite2D" parent="WorldMapRender/MapInputHandler" unique_id=2133703727]
 visible = false
-texture = ExtResource("11_xht7w")
+texture = ExtResource("11_rcan4")
 
-[node name="PlayerController" type="Node" parent="." unique_id=1219148852]
-script = ExtResource("11_w2bg8")
+[node name="Camera2D" type="Camera2D" parent="." unique_id=370442349]
+script = ExtResource("13_jposj")
 
-[node name="Camera2D" type="Camera2D" parent="PlayerController" unique_id=370442349]
-script = ExtResource("12_wtq7o")
+[node name="Hud" type="CanvasLayer" parent="." unique_id=1375363492]
 
-[node name="Hud" type="CanvasLayer" parent="PlayerController" unique_id=1375363492]
-
-[node name="Root" type="Control" parent="PlayerController/Hud" unique_id=1578843339]
+[node name="Root" type="Control" parent="Hud" unique_id=1578843339]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -532,7 +536,7 @@ grow_vertical = 2
 size_flags_horizontal = 0
 mouse_filter = 2
 
-[node name="CalendarBar" type="VBoxContainer" parent="PlayerController/Hud/Root" unique_id=1369050758]
+[node name="CalendarBar" type="VBoxContainer" parent="Hud/Root" unique_id=1369050758]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -543,13 +547,13 @@ offset_right = 15.214966
 offset_bottom = 97.0
 grow_horizontal = 0
 
-[node name="GameCalendar" type="Label" parent="PlayerController/Hud/Root/CalendarBar" unique_id=400806962]
+[node name="GameCalendar" type="Label" parent="Hud/Root/CalendarBar" unique_id=400806962]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
 text = "第1年4月1日"
 
-[node name="TimeFlowRate" type="TabBar" parent="PlayerController/Hud/Root/CalendarBar" unique_id=1219762538]
+[node name="TimeFlowRate" type="TabBar" parent="Hud/Root/CalendarBar" unique_id=1219762538]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 41.075)
 layout_mode = 2
@@ -562,33 +566,34 @@ tab_3/title = "3"
 tab_4/title = "4"
 tab_5/title = "5"
 
-[node name="TopBar" type="VBoxContainer" parent="PlayerController/Hud/Root" unique_id=461307185]
+[node name="TopBar" type="VBoxContainer" parent="Hud/Root" unique_id=461307185]
 layout_mode = 0
 offset_top = 10.0
 offset_right = 117.0
 offset_bottom = 65.000015
 
-[node name="FundsBar" type="HBoxContainer" parent="PlayerController/Hud/Root/TopBar" unique_id=1388995292]
+[node name="FundsBar" type="HBoxContainer" parent="Hud/Root/TopBar" unique_id=1388995292]
 layout_mode = 2
+script = ExtResource("15_il77p")
 
-[node name="Title" type="Label" parent="PlayerController/Hud/Root/TopBar/FundsBar" unique_id=180608736]
+[node name="Title" type="Label" parent="Hud/Root/TopBar/FundsBar" unique_id=180608736]
 layout_mode = 2
 theme_override_font_sizes/font_size = 40
 text = "G:"
 
-[node name="Amount" type="Label" parent="PlayerController/Hud/Root/TopBar/FundsBar" unique_id=1135819383]
+[node name="Amount" type="Label" parent="Hud/Root/TopBar/FundsBar" unique_id=1135819383]
 layout_mode = 2
 theme_override_font_sizes/font_size = 40
 text = "0"
 
-[node name="Change" type="Label" parent="PlayerController/Hud/Root/TopBar/FundsBar" unique_id=614789664]
+[node name="Change" type="Label" parent="Hud/Root/TopBar/FundsBar" unique_id=614789664]
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 0
 theme_override_font_sizes/font_size = 26
 text = "+0"
 
-[node name="TileInfoPanel" type="PanelContainer" parent="PlayerController/Hud/Root" unique_id=760676672]
+[node name="TileInfoPanel" type="PanelContainer" parent="Hud/Root" unique_id=760676672]
 visible = false
 layout_mode = 1
 anchors_preset = 2
@@ -597,27 +602,28 @@ anchor_bottom = 1.0
 offset_top = -40.0
 offset_right = 40.0
 grow_vertical = 0
+script = ExtResource("16_hy0gp")
 
-[node name="VBoxContainer" type="VBoxContainer" parent="PlayerController/Hud/Root/TileInfoPanel" unique_id=1737158656]
+[node name="VBoxContainer" type="VBoxContainer" parent="Hud/Root/TileInfoPanel" unique_id=1737158656]
 layout_mode = 2
 
-[node name="CoordLabel" type="Label" parent="PlayerController/Hud/Root/TileInfoPanel/VBoxContainer" unique_id=910406983]
+[node name="CoordLabel" type="Label" parent="Hud/Root/TileInfoPanel/VBoxContainer" unique_id=910406983]
 layout_mode = 2
 
-[node name="TerrainLabel" type="Label" parent="PlayerController/Hud/Root/TileInfoPanel/VBoxContainer" unique_id=237457585]
+[node name="TerrainLabel" type="Label" parent="Hud/Root/TileInfoPanel/VBoxContainer" unique_id=237457585]
 layout_mode = 2
 
-[node name="ActionButton" type="Button" parent="PlayerController/Hud/Root/TileInfoPanel/VBoxContainer" unique_id=1114764687]
+[node name="ActionButton" type="Button" parent="Hud/Root/TileInfoPanel/VBoxContainer" unique_id=1114764687]
 layout_mode = 2
 
-[node name="CloseButton" type="Button" parent="PlayerController/Hud/Root/TileInfoPanel/VBoxContainer" unique_id=340300040]
+[node name="CloseButton" type="Button" parent="Hud/Root/TileInfoPanel/VBoxContainer" unique_id=340300040]
 layout_mode = 2
 text = "X"
 
-[node name="SelectionBox" type="ColorRect" parent="PlayerController/Hud/Root" unique_id=449193226]
+[node name="SelectionBox" type="ColorRect" parent="Hud/Root" unique_id=449193226]
 visible = false
 layout_mode = 0
 offset_right = 40.0
 offset_bottom = 40.0
 mouse_filter = 2
-color = Color(0.8666667, 0.8666667, 0.8666667, 0.21568628)
+color = Color(0.8666667, 0.8666667, 0.8666667, 0.19607843)
