@@ -190,7 +190,7 @@ namespace ParadoxSimulator.Simulation.Network
                 IGameCommand? command = CommandFactory.Create(cmdDto);
     
                 // 2. 无脑执行（多态派发）
-                command?.Execute(worldSimulationState, timeSystem, cmdDto.PlayerId);
+                command?.Execute(worldSimulationState, cmdDto.PlayerId);
                 
             }
 

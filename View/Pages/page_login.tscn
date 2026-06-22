@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://bajm43opha6ae"]
 
-[ext_resource type="Script" uid="uid://dgbc16p47xr56" path="res://Render/Pages/PageLogin.cs" id="1_srkxf"]
+[ext_resource type="Script" uid="uid://dgbc16p47xr56" path="res://View/Pages/PageLogin.cs" id="1_srkxf"]
 
 [node name="PageLogin" type="Control" unique_id=2104864830]
 layout_mode = 3
@@ -42,24 +42,6 @@ layout_mode = 2
 [node name="JoinButton" type="Button" parent="JoinContainer" unique_id=1561116167]
 layout_mode = 2
 text = "加入游戏"
-
-[node name="Label" type="Label" parent="." unique_id=1648997235]
-layout_mode = 0
-offset_left = 819.0
-offset_top = 401.0
-offset_right = 859.0
-offset_bottom = 424.0
-size_flags_horizontal = 4
-text = "IP："
-
-[node name="Label2" type="Label" parent="." unique_id=155851913]
-layout_mode = 0
-offset_left = 802.0
-offset_top = 435.0
-offset_right = 850.0
-offset_bottom = 458.0
-size_flags_horizontal = 4
-text = "昵称："
 
 [node name="StateRichTextLabel" type="RichTextLabel" parent="." unique_id=2057226518]
 layout_mode = 0

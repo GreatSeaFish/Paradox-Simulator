@@ -27,6 +27,16 @@ public class WorldSimulationState
     public Dictionary<HexCoord, ColonizationTask> ActiveColonizations { get; set; } = new Dictionary<HexCoord, ColonizationTask>();
     
     // ================== 时钟 ==================
+    
+    
+    // ==========================================
+    // ===== 时间流速控制中心 =====
+    // ==========================================
+    
+    // 当前档位（0=暂停, 1~5=正常速度），你可以根据需要设定初始默认几速
+    public int _currentSpeedLevel = 0; 
+    
+
     // 累计经历的逻辑帧数
     public int LocalTickCount { get; set; } = 0;
     
@@ -39,6 +49,9 @@ public class WorldSimulationState
     // ==========================================
     // =====          数据变更事件           =====
     // ==========================================
+    
+    // 抛出事件：供 UI 层（WorldRender/Hud）挂载监听，实现数据单向驱动 UI
+    public event Action<int>? OnSpeedChanged;
     
     /// <summary> 实时资金变动事件（通知 UI 的 Amount） </summary>
     public event Action<int, int>? OnPlayerRealtimeFundsChanged;
@@ -72,6 +85,18 @@ public class WorldSimulationState
     // =====          数据管理方法           =====
     // ==========================================
     
+    /// <summary>
+    /// 【新增】由 ServerCommandHandler 在处理到特定的逻辑帧指令时调用
+    /// </summary>
+    public void SetTimeSpeed(int level)
+    {
+        // 防御性编程：将传入的档位钳制在 0-5 范围内，防止恶意发包越界
+        _currentSpeedLevel = Math.Clamp(level, 0, 5);
+        ClientDebugger.LogHandler?.Invoke($"[TimeSystem] 时间流速确切切换至: {_currentSpeedLevel} 档");
+            
+        // 触发事件，通知表现层刷新 UI 的 Tab 高亮
+        OnSpeedChanged?.Invoke(_currentSpeedLevel);
+    }
     /// <summary>
     /// 【核心步进驱动】向前演进游戏内的一天，级联触发事件和结算信号
     /// </summary>

@@ -3,6 +3,8 @@
 [ext_resource type="Texture2D" uid="uid://d1a82mld3fmul" path="res://Assets/SelectMark.png" id="1_kh2tv"]
 [ext_resource type="PackedScene" uid="uid://c84nc0mjm6xqx" path="res://View/MapTokens/military_token.tscn" id="2_qicfj"]
 
+[sub_resource type="TileSet" id="TileSet_kh2tv"]
+
 [node name="Node" type="Node" unique_id=1745093753]
 
 [node name="SelectMark" type="Sprite2D" parent="." unique_id=641831059]
@@ -11,3 +13,6 @@ texture = ExtResource("1_kh2tv")
 
 [node name="MilitaryToken" parent="." unique_id=1916310380 instance=ExtResource("2_qicfj")]
 position = Vector2(339, 508)
+
+[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=1435255661]
+tile_set = SubResource("TileSet_kh2tv")

@@ -64,7 +64,7 @@ public partial class MainGameView : Node
         _timeFlowRateTab.TabClicked += OnTimeTabClicked;
         if (CoreHost.TimeSystem != null)
         {
-            CoreHost.TimeSystem.OnSpeedChanged += OnSpeedChangedSync;
+            CoreHost.WorldSimulationState.OnSpeedChanged += OnSpeedChangedSync;
             CoreHost.WorldSimulationState.OnDateChanged += OnDateChangedSync;
             UpdateCalendarText(CoreHost.WorldSimulationState.CurrentDate);
         }
@@ -222,7 +222,7 @@ public partial class MainGameView : Node
         // 解绑静态系统事件防泄漏
         if (CoreHost.TimeSystem != null)
         {
-            CoreHost.TimeSystem.OnSpeedChanged -= OnSpeedChangedSync;
+            CoreHost.WorldSimulationState.OnSpeedChanged -= OnSpeedChangedSync;
             CoreHost.WorldSimulationState.OnDateChanged -= OnDateChangedSync; 
             // 【新增】注销事件防止内存泄漏
             CoreHost.WorldSimulationState.OnTileOwnershipChanged -= OnTileOwnershipChangedSync;

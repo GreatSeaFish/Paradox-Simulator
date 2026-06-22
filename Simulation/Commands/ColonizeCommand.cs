@@ -8,7 +8,7 @@ namespace ParadoxSimulator.Simulation.Commands
     {
         public HexCoord TargetHex { get; set; }
 
-        public void Execute(WorldSimulationState state, TimeSystem timeSystem, int playerId)
+        public void Execute(WorldSimulationState state, int playerId)
         {
             // 1. 安全防御：防止客户端发来不存在的越界地块
             if (!state.TileOwners.ContainsKey(TargetHex)) return;
