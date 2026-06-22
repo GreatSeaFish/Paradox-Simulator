@@ -23,6 +23,9 @@ public class WorldSimulationState
     // 局内全房间所有玩家的“本月资金预期变化值” (Key: 玩家ID, Value: 预计变化金额)
     public Dictionary<int, int> PlayerMonthlyFundsChange { get; set; } = new Dictionary<int, int>();
     
+    // 【新增】局内全网所有正在进行的殖民任务 (Key: 目标地块坐标, Value: 殖民任务详情)
+    public Dictionary<HexCoord, ColonizationTask> ActiveColonizations { get; set; } = new Dictionary<HexCoord, ColonizationTask>();
+    
     // ================== 时钟 ==================
     // 累计经历的逻辑帧数
     public int LocalTickCount { get; set; } = 0;
@@ -46,7 +49,8 @@ public class WorldSimulationState
     public event Action<DateTime>? OnDateChanged;
     public event Action? OnDailySettlementRequired;
     public event Action? OnMonthlySettlementRequired;
-    
+    // 【新增】当地块的归属权发生实质性变更时触发
+    public event Action<HexCoord, int>? OnTileOwnershipChanged;
     
     /// <summary>
     /// 初始化或重连时，主动向 UI 对齐当前所有的资金状态
@@ -67,6 +71,7 @@ public class WorldSimulationState
     // ==========================================
     // =====          数据管理方法           =====
     // ==========================================
+    
     /// <summary>
     /// 【核心步进驱动】向前演进游戏内的一天，级联触发事件和结算信号
     /// </summary>
@@ -145,7 +150,28 @@ public class WorldSimulationState
     {
         if (TileOwners.ContainsKey(coord))
         {
-            TileOwners[coord] = playerId;
+            // 【核心修改】如果新主人和老主人不同，才修改并抛出事件
+            if (TileOwners[coord] != playerId)
+            {
+                TileOwners[coord] = playerId;
+                OnTileOwnershipChanged?.Invoke(coord, playerId);
+            }
         }
+    }
+    
+    
+    // ==========================================
+    // =====          数据结构               =====
+    // ==========================================
+    
+    /// <summary>
+    /// 纯数据结构：记录单个地块的殖民任务状态 (需保证多端确定性)
+    /// </summary>
+    public class ColonizationTask
+    {
+        public int PlayerId { get; set; }
+        
+        // 殖民剩余天数，初始为 100
+        public int RemainingDays { get; set; } 
     }
 }

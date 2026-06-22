@@ -2,6 +2,7 @@
 using Godot;
 using System.Collections.Generic;
 using FixedMath.NET;
+using ParadoxSimulator.Simulation.State;
 using Shared.Math;
 using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 
@@ -11,7 +12,8 @@ public partial class MainGameView : Node
     private MapInputHandler _inputHandler = null!;
     private TerritoryVisualizer _territoryVisualizer = null!;
     private TileInspectorPanel _inspectorPanel = null!;
-
+// 【新增】用于管理漂浮在地块上的殖民进度 Label 字典
+    private readonly Dictionary<HexCoord, Label> _colonizationLabels = new();
     // ===== 2. 基础渲染节点引用 =====
     private TileMapLayer _groundLayer = null!;
     private TabBar _timeFlowRateTab = null!;
@@ -53,7 +55,11 @@ public partial class MainGameView : Node
             _inspectorPanel.Visible = false;
             _inputHandler.ClearSelection();
         };
-
+        // 【新增】监听地块归属权变更信号，触发领土网格重绘！
+        if (CoreHost.WorldSimulationState != null)
+        {
+            CoreHost.WorldSimulationState.OnTileOwnershipChanged += OnTileOwnershipChangedSync;
+        }
         // E. 驱动虚拟时间与日历系统绑定
         _timeFlowRateTab.TabClicked += OnTimeTabClicked;
         if (CoreHost.TimeSystem != null)
@@ -87,6 +93,10 @@ public partial class MainGameView : Node
 
     public override void _Process(double delta)
     {
+        // 【新增】每帧实时刷新悬浮文字！
+        // 这样即使游戏处于暂停(0速)状态，刚发起的殖民任务文字也能瞬间弹出来
+        UpdateColonizationFloatingTexts();
+        
         // ==================== 1. 采集输入与发包（保持原帧同步真理） ====================
         Vector2 godotDir = Input.GetVector("a", "d", "w", "s"); 
         godotDir.Y = -godotDir.Y;  // 保持物理世界：上为正，下为负
@@ -145,13 +155,77 @@ public partial class MainGameView : Node
         _gameCalendarLabel.Text = $"第{date.Year}年{date.Month}月{date.Day}日"; 
     }
 
+    /// <summary>
+    /// 【新增】动态维护地图上的殖民倒计时文字
+    /// </summary>
+    private void UpdateColonizationFloatingTexts()
+    {
+        var state = CoreHost.WorldSimulationState;
+        
+        // 1. 垃圾回收
+        var keysToRemove = new List<HexCoord>();
+        foreach (var kvp in _colonizationLabels)
+        {
+            if (!state.ActiveColonizations.ContainsKey(kvp.Key))
+            {
+                kvp.Value.QueueFree();
+                keysToRemove.Add(kvp.Key);
+            }
+        }
+        foreach (var key in keysToRemove) _colonizationLabels.Remove(key);
+        
+        // 2. 渲染更新
+        foreach (var kvp in state.ActiveColonizations)
+        {
+            HexCoord coord = kvp.Key;
+            WorldSimulationState.ColonizationTask task = kvp.Value;
+            
+            if (!_colonizationLabels.TryGetValue(coord, out Label label))
+            {
+                label = new Label();
+                label.AddThemeFontSizeOverride("font_size", 22);
+                label.AddThemeColorOverride("font_color", Colors.White);
+                label.AddThemeColorOverride("font_outline_color", Colors.Black);
+                label.AddThemeConstantOverride("outline_size", 4);
+                
+                // 【核心修复】将 ZIndex 设置极高，强行穿透所有地表和领土染色层！
+                label.ZIndex = 100; 
+                
+                var offset = MapRenderBridge.CubeToOffset(coord.X, coord.Y, coord.Z);
+                Vector2I cellCoords = new Vector2I(offset.offsetX, offset.offsetY);
+                Vector2 localPos = _groundLayer.MapToLocal(cellCoords);
+                
+                label.Position = localPos + new Vector2(-28, -20);
+                _groundLayer.AddChild(label);
+                _colonizationLabels[coord] = label;
+            }
+            
+            label.Text = $"{task.RemainingDays}天";
+            label.Modulate = task.PlayerId == CoreHost.LocalContext.MyPlayerId ? Colors.LimeGreen : Colors.IndianRed;
+        }
+        
+        if (_inspectorPanel.Visible && state.ActiveColonizations.ContainsKey(_inputHandler.GetCurrentSelectedHex()))
+        {
+            _inspectorPanel.Inspect(_inputHandler.GetCurrentSelectedHex(), CoreHost.MapConfig.Tiles[_inputHandler.GetCurrentSelectedHex()]);
+        }
+    }
+    
+    // 【新增】收到领土变更通知，一键重绘所有人的领土色块
+    private void OnTileOwnershipChangedSync(HexCoord coord, int newOwnerId)
+    {
+        _territoryVisualizer.UpdateOwnershipVisuals();
+    }
+    
+    
     public override void _ExitTree()
     {
         // 解绑静态系统事件防泄漏
         if (CoreHost.TimeSystem != null)
         {
-            CoreHost.TimeSystem.OnSpeedChanged -= OnSpeedChangedSync; 
+            CoreHost.TimeSystem.OnSpeedChanged -= OnSpeedChangedSync;
             CoreHost.WorldSimulationState.OnDateChanged -= OnDateChangedSync; 
+            // 【新增】注销事件防止内存泄漏
+            CoreHost.WorldSimulationState.OnTileOwnershipChanged -= OnTileOwnershipChangedSync;
         }
     }
 }

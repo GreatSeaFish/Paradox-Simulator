@@ -25,7 +25,7 @@ public partial class MapInputHandler : Node2D
         _selectMark = selectMark;
         _selectionBox = selectionBox;
     }
-
+    public HexCoord GetCurrentSelectedHex() => _currentSelectedHex ?? default;
     public override void _UnhandledInput(InputEvent @event)
     {
         // 1. 鼠标点击与拖拽状态转换 [cite: 622]
