@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://dgvtem46t1at8" path="res://Assets/MapTile/Forest_01.png" id="9_ws7gu"]
 [ext_resource type="Texture2D" uid="uid://bhpgdo8anixjk" path="res://Assets/MapTile/BorderSheet.png" id="10_hcqbc"]
 [ext_resource type="Script" uid="uid://7ha2kqhy3rjc" path="res://View/PlayerController.cs" id="11_w2bg8"]
+[ext_resource type="Texture2D" uid="uid://d1a82mld3fmul" path="res://Assets/SelectMark.png" id="11_xht7w"]
 [ext_resource type="Script" uid="uid://bqqwhu7307tpm" path="res://View/PlayerCamera.cs" id="12_wtq7o"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_asxvb"]
@@ -467,7 +468,7 @@ terrain_set_0/terrain_0/name = "MatchSides"
 terrain_set_0/terrain_0/color = Color(0.5, 0.34375, 0.25, 1)
 sources/0 = SubResource("TileSetAtlasSource_oyrfm")
 
-[node name="WorldRender" type="Node" unique_id=246933078]
+[node name="WorldView" type="Node" unique_id=246933078]
 script = ExtResource("1_lxpa6")
 
 [node name="WorldMapRender" type="Node2D" parent="." unique_id=1689830667]
@@ -508,6 +509,10 @@ tile_set = SubResource("TileSet_ddhu8")
 
 [node name="Player8" type="TileMapLayer" parent="WorldMapRender/OwnershipFilter/TerritorialMarkLayers" unique_id=2029674206]
 tile_set = SubResource("TileSet_ddhu8")
+
+[node name="SelectMark" type="Sprite2D" parent="WorldMapRender" unique_id=2133703727]
+visible = false
+texture = ExtResource("11_xht7w")
 
 [node name="PlayerController" type="Node" parent="." unique_id=1219148852]
 script = ExtResource("11_w2bg8")
@@ -582,3 +587,37 @@ size_flags_horizontal = 0
 size_flags_vertical = 0
 theme_override_font_sizes/font_size = 26
 text = "+0"
+
+[node name="TileInfoPanel" type="PanelContainer" parent="PlayerController/Hud/Root" unique_id=760676672]
+visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -40.0
+offset_right = 40.0
+grow_vertical = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PlayerController/Hud/Root/TileInfoPanel" unique_id=1737158656]
+layout_mode = 2
+
+[node name="CoordLabel" type="Label" parent="PlayerController/Hud/Root/TileInfoPanel/VBoxContainer" unique_id=910406983]
+layout_mode = 2
+
+[node name="TerrainLabel" type="Label" parent="PlayerController/Hud/Root/TileInfoPanel/VBoxContainer" unique_id=237457585]
+layout_mode = 2
+
+[node name="ActionButton" type="Button" parent="PlayerController/Hud/Root/TileInfoPanel/VBoxContainer" unique_id=1114764687]
+layout_mode = 2
+
+[node name="CloseButton" type="Button" parent="PlayerController/Hud/Root/TileInfoPanel/VBoxContainer" unique_id=340300040]
+layout_mode = 2
+text = "X"
+
+[node name="SelectionBox" type="ColorRect" parent="PlayerController/Hud/Root" unique_id=449193226]
+visible = false
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+mouse_filter = 2
+color = Color(0.8666667, 0.8666667, 0.8666667, 0.21568628)
