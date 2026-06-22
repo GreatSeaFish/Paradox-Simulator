@@ -40,13 +40,13 @@ public partial class CoreHost : Node
         NetworkManager = new GameNetworkManager(LocalContext);
         NetworkManager.Initialize();
         
-        SettlementSystem = new SettlementSystem();
-        TimeSystem = new TimeSystem(SettlementSystem, WorldSimulationState);
+        SettlementSystem = new SettlementSystem(WorldSimulationState);
+        TimeSystem = new TimeSystem(WorldSimulationState);
         
         CommandSender = new ClientCommandSender(NetworkManager, LocalContext);
         CommandHandler = new ServerCommandHandler(TimeSystem, LocalContext, WorldSimulationState);
         // 【新增】实例化状态管理器
-        StateSystem = new GameStateSystem(GameState, WorldSimulationState, LocalContext);
+        StateSystem = new GameStateSystem(GameState, WorldSimulationState, LocalContext, SettlementSystem);
         
         // 【新增】绑定开局事件：当网络层收到开局包时，立刻在逻辑层完成状态切换和数据准备
         NetworkManager.OnGameStartReceived += () => 

@@ -517,20 +517,35 @@ script = ExtResource("12_wtq7o")
 
 [node name="Hud" type="CanvasLayer" parent="PlayerController" unique_id=1375363492]
 
-[node name="CalendarContainer" type="VBoxContainer" parent="PlayerController/Hud" unique_id=1369050758]
+[node name="Root" type="Control" parent="PlayerController/Hud" unique_id=1578843339]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 0
+mouse_filter = 2
+
+[node name="CalendarBar" type="VBoxContainer" parent="PlayerController/Hud/Root" unique_id=1369050758]
+layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -208.0
-offset_bottom = 58.0
+offset_left = -192.78503
+offset_top = 10.0
+offset_right = 15.214966
+offset_bottom = 97.0
 grow_horizontal = 0
 
-[node name="GameCalendar" type="Label" parent="PlayerController/Hud/CalendarContainer" unique_id=400806962]
+[node name="GameCalendar" type="Label" parent="PlayerController/Hud/Root/CalendarBar" unique_id=400806962]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 30
 text = "第1年4月1日"
 
-[node name="TimeFlowRate" type="TabBar" parent="PlayerController/Hud/CalendarContainer" unique_id=1219762538]
+[node name="TimeFlowRate" type="TabBar" parent="PlayerController/Hud/Root/CalendarBar" unique_id=1219762538]
+unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 41.075)
 layout_mode = 2
 current_tab = 0
@@ -541,3 +556,29 @@ tab_2/title = "2"
 tab_3/title = "3"
 tab_4/title = "4"
 tab_5/title = "5"
+
+[node name="TopBar" type="VBoxContainer" parent="PlayerController/Hud/Root" unique_id=461307185]
+layout_mode = 0
+offset_top = 10.0
+offset_right = 117.0
+offset_bottom = 65.000015
+
+[node name="FundsBar" type="HBoxContainer" parent="PlayerController/Hud/Root/TopBar" unique_id=1388995292]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="PlayerController/Hud/Root/TopBar/FundsBar" unique_id=180608736]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "G:"
+
+[node name="Amount" type="Label" parent="PlayerController/Hud/Root/TopBar/FundsBar" unique_id=1135819383]
+layout_mode = 2
+theme_override_font_sizes/font_size = 40
+text = "0"
+
+[node name="Change" type="Label" parent="PlayerController/Hud/Root/TopBar/FundsBar" unique_id=614789664]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 26
+text = "+0"

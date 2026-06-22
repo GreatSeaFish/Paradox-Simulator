@@ -8,16 +8,14 @@ namespace ParadoxSimulator.Simulation.Systems
     /// 游戏内虚拟时间管理器（确定性时钟）
     /// 职责：管理时钟步进，并实例化与驱动 SettlementSystem
     /// </summary>
-    public class TimeSystem(SettlementSystem settlementSystem, WorldSimulationState worldSimulationState)
+    public class TimeSystem(WorldSimulationState worldSimulationState)
     {
 
         // ==========================================
         // ===== 时间流速控制中心 =====
         // ==========================================
-            
-        // ===== 日期变更事件 =====
-        public event Action<DateTime>? OnDateChanged;
 
+        
         // 当前档位（0=暂停, 1~5=正常速度），你可以根据需要设定初始默认几速
         private int _currentSpeedLevel = 0; 
         
@@ -52,38 +50,15 @@ namespace ParadoxSimulator.Simulation.Systems
         /// </summary>
         public void Tick()
         {
-            // 【核心拦截】：如果是暂停状态（映射值为 -1），直接跳过本帧的日历演进运算
-            if (_speedMap[_currentSpeedLevel] == -1)
-            {
-                return;
-            }
+            if (_speedMap[_currentSpeedLevel] == -1) return;
 
             worldSimulationState.LocalTickCount++;
-            
-            // 将原来的 TicksPerDay 替换为当前档位对应的阈值
             if (worldSimulationState.LocalTickCount >= _speedMap[_currentSpeedLevel])
             {
                 worldSimulationState.LocalTickCount = 0;
-                worldSimulationState.GameDays++;         
                 
-                // 记录当前月份用于判断跨月
-                int oldMonth = worldSimulationState.CurrentDate.Month;
-                
-                
-                // 现实日历向前推进一天（自动处理大小月、平闰年）
-                worldSimulationState.CurrentDate = worldSimulationState.CurrentDate.AddDays(1);
-                
-                // 当日期在确定性帧中发生实质改变时，广播给表现层
-                OnDateChanged?.Invoke( worldSimulationState.CurrentDate);
-
-                // 级联驱动 SettlementSystem 的日结算
-                settlementSystem.ExecuteDailySettlement(worldSimulationState.CurrentDate);
-                
-                // 检查是否跨月，如果跨月了，驱动 SettlementSystem 的月结算
-                if (worldSimulationState.CurrentDate.Month != oldMonth)
-                {
-                    settlementSystem.ExecuteMonthlySettlement(worldSimulationState.CurrentDate);
-                }
+                // 仅推动数据层，不再亲自调度业务层
+                worldSimulationState.AdvanceDay();
             }
         }
     }

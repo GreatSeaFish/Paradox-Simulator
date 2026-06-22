@@ -11,7 +11,7 @@ namespace ParadoxSimulator.Simulation.Systems
     /// 全局状态管理器
     /// 职责：维护当前游戏所处的状态，并负责在状态切换时初始化/清理相应的逻辑数据
     /// </summary>
-    public class GameStateSystem(GameState gameState, WorldSimulationState simulationState, LocalContext localContext)
+    public class GameStateSystem(GameState gameState, WorldSimulationState simulationState, LocalContext localContext, SettlementSystem settlementSystem)
     {
 
         /// <summary>
@@ -24,12 +24,12 @@ namespace ParadoxSimulator.Simulation.Systems
             gameState.CurrentState = GamePhase.Playing;
             ClientDebugger.LogHandler?.Invoke("[GameStateSystem] 状态切换为: Playing，开始初始化游戏逻辑数据...");
 
-            // ==========================================
-            // 把原先 GlobalPlayerState.InitializeGame() 的逻辑移到这里
-            // ==========================================
             simulationState.PlayerPositions.Clear();
+            simulationState.PlayerFunds.Clear(); // 【新增】清空历史资金
+            
             foreach (var player in localContext.LobbyPlayers)  
             {
+                int playerId = player.PlayerId;
                 // 1. 获取分配给该槽位的六边形出生点
                 HexCoord spawnHex = gameState.SpawnPoints[player.SlotId];
                 
@@ -38,9 +38,14 @@ namespace ParadoxSimulator.Simulation.Systems
                 
                 // 3. 将该出生点地块的归属权转移给该玩家
                 simulationState.SetTileOwner(spawnHex, player.PlayerId);
+                
+                // 为每位参与的玩家初始化资金仓库
+                simulationState.PlayerFunds[player.PlayerId] = 0;
+                CoreHost.SettlementSystem.RecalculateMonthlyIncome(playerId);
+                simulationState.NotifyFundsChanged(playerId);
+                
             }
 
         }
-
     }
 }

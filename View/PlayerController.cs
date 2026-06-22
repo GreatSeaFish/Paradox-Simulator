@@ -1,44 +1,97 @@
 using Godot;
 using System;
+using System.Linq;
 
 public partial class PlayerController : Node
 {
     private TabBar _timeFlowRateTab = null!;
-    
-    // 【新增】日历文本标签的引用
-    private Label _gameCalendarLabel = null!; 
+    private Label _gameCalendarLabel = null!;
+    private Label _fundsAmountLabel = null!;
+    private Label _fundsChangeLabel = null!;
 
     public override void _Ready()
     {
-        _timeFlowRateTab = GetNode<TabBar>("Hud/CalendarContainer/TimeFlowRate");
+        _timeFlowRateTab = GetNode<TabBar>("%TimeFlowRate");
+        _gameCalendarLabel = GetNode<Label>("%GameCalendar");
+        _fundsAmountLabel = GetNode<Label>("Hud/Root/TopBar/FundsBar/Amount");
+        _fundsChangeLabel = GetNode<Label>("Hud/Root/TopBar/FundsBar/Change");
         
-        // 【新增】通过相对路径获取 tscn 场景中的 GameCalendar 节点
-        _gameCalendarLabel = GetNode<Label>("Hud/CalendarContainer/GameCalendar"); 
-
         _timeFlowRateTab.TabClicked += OnTimeTabClicked;
 
+        // 订阅逻辑层的全新分流资金变动事件
+        if (CoreHost.WorldSimulationState != null)
+        {
+            CoreHost.WorldSimulationState.OnPlayerRealtimeFundsChanged += OnLocalPlayerRealtimeFundsChanged;
+            CoreHost.WorldSimulationState.OnPlayerMonthlyExpectedChanged += OnLocalPlayerMonthlyExpectedChanged;
+            
+            // 初始化主动对齐一次
+            CoreHost.WorldSimulationState.NotifyFundsChanged(CoreHost.LocalContext.MyPlayerId);
+        }
+        
         if (CoreHost.TimeSystem != null)
         {
             CoreHost.TimeSystem.OnSpeedChanged += OnSpeedChangedSync;
-            
-            // 【新增】订阅逻辑层确定性的日期变更事件
-            CoreHost.TimeSystem.OnDateChanged += OnDateChangedSync; 
-            
-            // 【新增】初始化时，立刻根据逻辑层的初始时间刷新一次 UI 文本（显示 第1年4月1日）
+            // 【核心修改】：UI 直接订阅状态层提供的时间变更
+            CoreHost.WorldSimulationState.OnDateChanged += OnDateChangedSync;
             UpdateCalendarText(CoreHost.WorldSimulationState.CurrentDate);
         }
         
-        _timeFlowRateTab.CurrentTab = 0; 
+        _timeFlowRateTab.CurrentTab = 0;
     }
 
+    /// <summary>
+    /// 实时变动接收中心：只管更新总额 Amount
+    /// </summary>
+    private void OnLocalPlayerRealtimeFundsChanged(int playerId, int currentFunds)
+    {
+        if (playerId != CoreHost.LocalContext.MyPlayerId) return;
+        
+        if (IsInstanceValid(_fundsAmountLabel))
+        {
+            _fundsAmountLabel.Text = currentFunds.ToString();
+        }
+    }
+
+    /// <summary>
+    /// 预期/账单变动接收中心：只管更新月度盈亏预测 Change
+    /// </summary>
+    private void OnLocalPlayerMonthlyExpectedChanged(int playerId, int expectedFundsChange)
+    {
+        if (playerId != CoreHost.LocalContext.MyPlayerId) return;
+
+        if (IsInstanceValid(_fundsChangeLabel))
+        {
+            if (expectedFundsChange > 0)
+            {
+                _fundsChangeLabel.Text = $"+{expectedFundsChange}";
+                _fundsChangeLabel.Modulate = Colors.LimeGreen; // 预期盈利显绿色
+            }
+            else if (expectedFundsChange < 0)
+            {
+                _fundsChangeLabel.Text = $"{expectedFundsChange}"; // 自带负号
+                _fundsChangeLabel.Modulate = Colors.Red;       // 预期赤字显红色
+            }
+            else
+            {
+                _fundsChangeLabel.Text = "+0";
+                _fundsChangeLabel.Modulate = Colors.White;     // 收支平衡显白色
+            }
+        }
+    }
+    
     public override void _ExitTree()
     {
+        if (CoreHost.WorldSimulationState != null)
+        {
+            CoreHost.WorldSimulationState.OnPlayerRealtimeFundsChanged -= OnLocalPlayerRealtimeFundsChanged;
+            CoreHost.WorldSimulationState.OnPlayerMonthlyExpectedChanged -= OnLocalPlayerMonthlyExpectedChanged;
+        }
+
         if (CoreHost.TimeSystem != null)
         {
             CoreHost.TimeSystem.OnSpeedChanged -= OnSpeedChangedSync;
-            
-            // 【新增】安全注销事件，防止切场景内存泄漏
-            CoreHost.TimeSystem.OnDateChanged -= OnDateChangedSync; 
+            // 【核心修改】：UI 直接订阅状态层提供的时间变更
+            CoreHost.WorldSimulationState.OnDateChanged += OnDateChangedSync;
         }
     }
 
@@ -55,16 +108,13 @@ public partial class PlayerController : Node
         }
     }
 
-    // 【新增】收到逻辑层天数增加时的回调方法
     private void OnDateChangedSync(DateTime newDate)
     {
         UpdateCalendarText(newDate);
     }
 
-    // 【新增】封装的统一文本格式化方法
     private void UpdateCalendarText(DateTime date)
     {
-        // 拼接成符合你要求的 "第*年*月*日" 格式
         _gameCalendarLabel.Text = $"第{date.Year}年{date.Month}月{date.Day}日";
     }
 }
