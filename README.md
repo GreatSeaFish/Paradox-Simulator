@@ -82,4 +82,110 @@ Commands 是网络输入与本地状态之间的桥梁。
                                         v                               v
                                   [Commands]                      [Systems]
                             修改 WorldSimulationState 设定     依据新设定自动演算世界数据
+
+---
+
+# 新功能开发标准工作流 (SOP)
+
+## 第一阶段：逻辑层 —— 数据与状态定义 (State)
+
+**核心原则**：所有影响游戏进程的数据必须是纯数据（无 Godot 节点），且具备绝对的确定性。
+
+1. **定义数据结构** `[WorldSimulationState.cs]`
+    
+    - 在文件底部创建纯数据类/结构体（如 `UnitBuildTask`, `MilitaryUnit`）。
+        
+2. **注册核心数据容器** `[WorldSimulationState.cs]`
+    
+    - 在状态机中添加对应的 `Dictionary` 或 `List` 作为全局数据容器。
+        
+3. **声明表现层驱动事件** `[WorldSimulationState.cs]`
+    
+    - 定义 `event Action<T>` 事件，专供 View 层监听（如 `OnUnitSpawned`）。
+        
+4. **封装数据变更方法** `[WorldSimulationState.cs]`
+    
+    - 编写供 System 调用的方法，在方法内**同时修改数据字典**并**Invoke 触发事件**。
+        
+5. **清理脏数据** `[GameStateSystem.cs]`
+    
+    - 在 `StartGame()` 方法的清理环节中，调用新字典的 `.Clear()`，确保每次开局状态纯净。
+        
+
+## 第二阶段：逻辑层 —— 指令与网络通信 (Command)
+
+**核心原则**：客户端只发操作意图，不直接改状态；由服务端广播后，各端统一步调执行。
+
+1. **封装客户端发送** `[ClientCommandSender.cs]`
+    
+    - 编写 `SendXxxCommand()`，分配新的 `InputType` ID，打包序列化并发送给服务端。
+        
+2. **注册路由映射** `[CommandFactory.cs]`
+    
+    - 在 `Create()` 的 switch 语句中，将对应的 `InputType` 映射到具体的指令类。
+        
+3. **实现确定性执行逻辑** `[Commands/XxxCommand.cs]`
+    
+    - 新建指令类实现 `IGameCommand` 接口。
+        
+    - 在 `Execute()` 中编写严格的**规则校验**（所有前置条件：归属权、资金、防止连点或重叠状态）。
+        
+    - 校验通过后，执行核心状态变更。
+        
+
+## 第三阶段：逻辑层 —— 系统驱动与结算 (System)
+
+**核心原则**：处理随时间流逝自动发生的状态变化。
+
+1. **设计结算/Tick机制** `[如 SettlementSystem.cs]`
+    
+    - 在对应的系统 `Execute` 循环中，遍历新加的数据容器。
+        
+    - 处理倒计时、资源随时间增减等逻辑。
+        
+    - 当条件满足时，调用第一阶段封装好的“数据变更方法”（从而触发渲染层事件）。
+        
+
+## 第四阶段：表现层 —— UI 与交互响应 (View - UI)
+
+**核心原则**：UI 只反映当前逻辑层的 State，不能自己存核心状态；用户点击只负责发 Command。
+
+1. **扩展复用组件/面板** `[Components/XxxPanel.cs]`
+    
+    - 根据 `WorldSimulationState` 中的最新数据，决定 UI 的显示状态（改字、禁用/启用按钮、显示进度条）。
+        
+    - 如有需要，引入内部状态机（如 `ActionMode` 枚举）区分同一个按钮的不同功能。
+        
+2. **绑定交互与防抖** `[Components/XxxPanel.cs]`
+    
+    - 按钮点击事件绑定对应的 `CoreHost.CommandSender.SendXxxCommand()`。
+        
+    - **必做**：点击后立即禁用按钮/更改文案（防连点），等待帧同步网络包回来后，由 UI 刷新机制自然解锁。
+        
+
+## 第五阶段：表现层 —— 场景渲染与动画 (View - Render)
+
+**核心原则**：被动接收逻辑层的事件通知，只负责“画”，绝对不干涉游戏逻辑。
+
+1. **预加载与节点声明** `[MainGameView.cs]`
+    
+    - 使用 `GD.Load<PackedScene>` 预加载相关的预制体（如模型、特效）。
+        
+    - 声明容器节点引用（如挂载对象的根节点）以及用于追踪已生成实体的 `Dictionary<Id, Node2D>`。
+        
+2. **事件监听与注销** `[MainGameView.cs]`
+    
+    - 在 `_Ready()` 中挂载逻辑层的事件：`CoreHost.WorldSimulationState.OnXxx += OnXxxSync;`
+        
+    - **必做**：在 `_ExitTree()` 中注销对应事件 `-=`，防止内存泄漏和空指针。
+        
+3. **编写实例化逻辑** `[MainGameView.cs]`
+    
+    - 实现事件回调方法 `OnXxxSync()`。
+        
+    - 在方法内实例化预制体，坐标转换（网格转世界坐标），装配材质/颜色/文字。
+        
+4. **每帧动态表现** `[MainGameView.cs]`
+    
+    - 在 `_Process(double delta)` 中，遍历逻辑层 State 里的容器，动态更新地图悬浮字倒计时、进度条、粒子等与帧率相关但不影响游戏规则的平滑表现。
 ```
