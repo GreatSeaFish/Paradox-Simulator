@@ -174,6 +174,36 @@ namespace ParadoxSimulator.Simulation.Network
             ClientDebugger.LogHandler?.Invoke($"[Client] 发起殖民请求: 坐标({targetHex.X}, {targetHex.Y}, {targetHex.Z})");
         }
         
+        /// <summary>
+        /// 【新增】发送地块造兵指令
+        /// </summary>
+        public void SendBuildUnitCommand(HexCoord targetHex)
+        {
+            int playerId = _localContext.MyPlayerId;
+            // 安全防御：如果没有合法ID或断网，则不发包
+            if (playerId == -1 || _networkManager.ServerPeer == null) return;
+
+            // 1. 组装造兵专用指令
+            var cmd = new PlayerCommand
+            {
+                PlayerId = playerId,
+                InputType = 4,           // 4 代表地块造兵指令
+                TargetHexX = targetHex.X,
+                TargetHexY = targetHex.Y,
+                TargetHexZ = targetHex.Z
+            };
+
+            // 2. 清理复用的写入器，写入包头
+            _cachedWriter.Reset();
+            _cachedWriter.Put((byte)PacketType.FrameData);
+
+            // 3. 序列化并发送
+            cmd.Serialize(_cachedWriter);
+            _networkManager.ServerPeer.Send(_cachedWriter, DeliveryMethod.ReliableOrdered);
+            
+            ClientDebugger.LogHandler?.Invoke($"[Client] 发起造兵请求: 坐标({targetHex.X}, {targetHex.Y}, {targetHex.Z})");
+        }
+        
     }
     
 }

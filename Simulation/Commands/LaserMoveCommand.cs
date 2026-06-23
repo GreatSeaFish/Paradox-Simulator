@@ -1,4 +1,4 @@
-﻿// Core\System\CommandSystem\Commands\MoveCommand.cs
+﻿// Core\System\CommandSystem\Commands\LaserMoveCommand.cs
 using FixedMath.NET;
 using ParadoxSimulator.Simulation.State;
 using ParadoxSimulator.Simulation.Systems;
@@ -6,7 +6,7 @@ using Shared.Math;
 
 namespace ParadoxSimulator.Simulation.Commands
 {
-    public class MoveCommand : IGameCommand
+    public class LaserMoveCommand : IGameCommand
     {
         public FixVector2 Direction { get; set; }
 

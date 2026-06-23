@@ -8,11 +8,11 @@
 [node name="Node" type="Node" unique_id=1745093753]
 
 [node name="SelectMark" type="Sprite2D" parent="." unique_id=641831059]
-position = Vector2(377, 510)
+position = Vector2(339, 508)
 texture = ExtResource("1_kh2tv")
 
 [node name="MilitaryToken" parent="." unique_id=1916310380 instance=ExtResource("2_qicfj")]
-position = Vector2(339, 508)
+position = Vector2(340.00003, 523)
 
 [node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=1435255661]
 tile_set = SubResource("TileSet_kh2tv")

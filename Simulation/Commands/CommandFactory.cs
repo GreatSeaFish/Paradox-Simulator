@@ -14,13 +14,14 @@ namespace ParadoxSimulator.Simulation.Commands
         {
             return dto.InputType switch
             {
-                1 => new MoveCommand { Direction = dto.MoveDirection },
+                1 => new LaserMoveCommand { Direction = dto.MoveDirection },
                 2 => new TimeSpeedCommand { SpeedLevel = dto.ActionValue },
                 // 如果后续有建造、造兵指令，只需在这里加一行即可
                 // 3 => new BuildCommand { TargetHex = dto.TargetHex, BuildingId = dto.ActionValue },
                 // 【新增】路由到殖民指令，并塞入三维坐标
                 3 => new ColonizeCommand { TargetHex = new HexCoord(dto.TargetHexX, dto.TargetHexY, dto.TargetHexZ) },
-                
+                // 【新增】路由到造兵指令，并塞入三维坐标
+                4 => new BuildUnitCommand { TargetHex = new HexCoord(dto.TargetHexX, dto.TargetHexY, dto.TargetHexZ) },
                 
                 _ => null // 无效或空指令
             };

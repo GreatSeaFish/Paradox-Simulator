@@ -553,6 +553,8 @@ script = ExtResource("12_dj4t6")
 visible = false
 texture = ExtResource("11_rcan4")
 
+[node name="Units" type="Node2D" parent="." unique_id=2056625756]
+
 [node name="Camera2D" type="Camera2D" parent="." unique_id=370442349]
 script = ExtResource("13_jposj")
 

@@ -26,17 +26,18 @@ public class WorldSimulationState
     // 【新增】局内全网所有正在进行的殖民任务 (Key: 目标地块坐标, Value: 殖民任务详情)
     public Dictionary<HexCoord, ColonizationTask> ActiveColonizations { get; set; } = new Dictionary<HexCoord, ColonizationTask>();
     
+    // 【新增】局内全网所有正在进行的造兵任务 (Key: 目标地块坐标, Value: 造兵任务详情)
+    public Dictionary<HexCoord, UnitBuildTask> ActiveUnitBuilds { get; set; } = new Dictionary<HexCoord, UnitBuildTask>();
+
+    // 【新增】局内全网所有已部署的军事单位 (Key: 目标地块坐标, Value: 单位详情)
+    // 假设每个地块最多驻扎一支大部队
+    public Dictionary<HexCoord, MilitaryUnit> DeployedUnits { get; set; } = new Dictionary<HexCoord, MilitaryUnit>();
     // ================== 时钟 ==================
     
-    
-    // ==========================================
-    // ===== 时间流速控制中心 =====
-    // ==========================================
     
     // 当前档位（0=暂停, 1~5=正常速度），你可以根据需要设定初始默认几速
     public int _currentSpeedLevel = 0; 
     
-
     // 累计经历的逻辑帧数
     public int LocalTickCount { get; set; } = 0;
     
@@ -64,6 +65,12 @@ public class WorldSimulationState
     public event Action? OnMonthlySettlementRequired;
     // 【新增】当地块的归属权发生实质性变更时触发
     public event Action<HexCoord, int>? OnTileOwnershipChanged;
+    
+    // 【新增】当造兵任务开始时触发 (用于UI显示造兵倒计时)
+    public event Action<HexCoord, int>? OnUnitBuildStarted;
+    
+    // 【新增】当部队正式部署时触发 (用于实例化 MilitaryToken)
+    public event Action<HexCoord, int, int>? OnUnitSpawned;
     
     /// <summary>
     /// 初始化或重连时，主动向 UI 对齐当前所有的资金状态
@@ -133,6 +140,17 @@ public class WorldSimulationState
     }
     
     /// <summary>
+    /// 【新增】部署部队并通知渲染层
+    /// </summary>
+    public void SpawnUnit(HexCoord coord, int ownerId, int headcount)
+    {
+        // 写入状态机字典
+        DeployedUnits[coord] = new MilitaryUnit { OwnerId = ownerId, Headcount = headcount };
+        // 抛出事件通知外层 UI 生成预制体
+        OnUnitSpawned?.Invoke(coord, ownerId, headcount);
+    }
+    
+    /// <summary>
     /// 【修改月度预期账单方法】：实时占领地块、军队增减时调用
     /// 仅影响并通知 UI 的 Change 标签，不改变玩家当前总资金
     /// </summary>
@@ -198,5 +216,25 @@ public class WorldSimulationState
         
         // 殖民剩余天数，初始为 100
         public int RemainingDays { get; set; } 
+    }
+    
+    /// <summary>
+    /// 纯数据结构：记录单个地块的造兵任务状态
+    /// </summary>
+    public class UnitBuildTask
+    {
+        public int PlayerId { get; set; }
+        // 造兵剩余天数，初始为 30
+        public int RemainingDays { get; set; } 
+    }
+
+    /// <summary>
+    /// 纯数据结构：记录部署在地块上的军事单位
+    /// </summary>
+    public class MilitaryUnit
+    {
+        public int OwnerId { get; set; }
+        // 当前兵力，初始为 1000
+        public int Headcount { get; set; } 
     }
 }

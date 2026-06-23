@@ -50,6 +50,35 @@ namespace ParadoxSimulator.Simulation.Systems
                 // 3. 由于领地变多了，且无需再交该地块的维护费，重新计算该玩家的月度预期收入
                 RecalculateMonthlyIncome(ownerId);
             }
+            
+            // ==========================================
+            // 【新增】处理所有正在进行的造兵任务倒计时
+            // ==========================================
+            var completedUnitBuilds = new List<HexCoord>();
+            foreach (var kvp in _state.ActiveUnitBuilds)
+            {
+                var task = kvp.Value;
+                task.RemainingDays--;
+                
+                if (task.RemainingDays <= 0)
+                {
+                    completedUnitBuilds.Add(kvp.Key);
+                }
+            }
+
+            // 处理所有在今天彻底完成造兵的地块
+            foreach (var coord in completedUnitBuilds)
+            {
+                int ownerId = _state.ActiveUnitBuilds[coord].PlayerId;
+                
+                // 1. 任务完成，从建造队列中移除
+                _state.ActiveUnitBuilds.Remove(coord);
+                
+                // 2. 部署部队并触发渲染层事件
+                _state.SpawnUnit(coord, ownerId, 1000);
+                
+                ClientDebugger.LogHandler?.Invoke($"[Settlement] 玩家 {ownerId} 在坐标({coord.X},{coord.Y},{coord.Z}) 成功招募了一支 1000 人的部队！");
+            }
         }
 
         private void ExecuteMonthlySettlement()

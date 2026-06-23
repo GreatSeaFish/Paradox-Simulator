@@ -27,6 +27,16 @@ public partial class MainGameView : Node
         Colors.Red, Colors.Blue, Colors.Orange, Colors.Green, 
         Colors.Yellow, Colors.Purple, Colors.Pink, Colors.LightBlue 
     }; 
+    // 【新增】预加载军事单位预制体
+    private PackedScene _militaryTokenScene = GD.Load<PackedScene>("res://View/MapTokens/military_token.tscn");
+    
+    // 【新增】用于挂载实体部队的根节点
+    private Node2D _unitsRoot = null!;
+    
+    // 【新增】造兵进度 Label 字典与已部署的部队节点字典
+    private readonly Dictionary<HexCoord, Label> _unitBuildLabels = new();
+    private readonly Dictionary<HexCoord, Node2D> _spawnedUnitNodes = new();
+    
 
     public override void _Ready()
     {
@@ -69,7 +79,17 @@ public partial class MainGameView : Node
             UpdateCalendarText(CoreHost.WorldSimulationState.CurrentDate);
         }
         _timeFlowRateTab.CurrentTab = 0; 
+// B. 动态挂载/装配我们在第一、二阶段抽离的独立解耦类 (在这段下面新增获取Units节点)
+        _unitsRoot = GetNode<Node2D>("Units");
 
+        // D. 桥接横向组件的信号 (在里面补充事件)
+        if (CoreHost.WorldSimulationState != null)
+        {
+            CoreHost.WorldSimulationState.OnTileOwnershipChanged += OnTileOwnershipChangedSync;
+            // 【新增】监听逻辑层派发的部队部署事件
+            CoreHost.WorldSimulationState.OnUnitSpawned += OnUnitSpawnedSync;
+        }
+        
         // F. 局内首帧画面渲染对齐
         _territoryVisualizer.UpdateOwnershipVisuals();
         CreatePlayerNodes();
@@ -96,7 +116,7 @@ public partial class MainGameView : Node
         // 【新增】每帧实时刷新悬浮文字！
         // 这样即使游戏处于暂停(0速)状态，刚发起的殖民任务文字也能瞬间弹出来
         UpdateColonizationFloatingTexts();
-        
+        UpdateUnitBuildFloatingTexts(); // 【新增】实时刷新造兵进度
         // ==================== 1. 采集输入与发包（保持原帧同步真理） ====================
         Vector2 godotDir = Input.GetVector("a", "d", "w", "s"); 
         godotDir.Y = -godotDir.Y;  // 保持物理世界：上为正，下为负
@@ -216,7 +236,95 @@ public partial class MainGameView : Node
         _territoryVisualizer.UpdateOwnershipVisuals();
     }
     
-    
+    /// <summary>
+    /// 【新增】接收到逻辑层的部署指令后，在场景中真正生成预制体
+    /// </summary>
+    private void OnUnitSpawnedSync(HexCoord coord, int ownerId, int headcount)
+    {
+        if (_militaryTokenScene.Instantiate() is Node2D tokenNode)
+        {
+            // 将六边形坐标转换为屏幕像素坐标
+            var offset = MapRenderBridge.CubeToOffset(coord.X, coord.Y, coord.Z);
+            Vector2I cellCoords = new Vector2I(offset.offsetX, offset.offsetY);
+            Vector2 localPos = _groundLayer.MapToLocal(cellCoords);
+            
+            // 贴合地块中心
+            tokenNode.Position = localPos;
+            _unitsRoot.AddChild(tokenNode);
+            _spawnedUnitNodes[coord] = tokenNode;
+
+            // 赋值兵力数字
+            var headcountLabel = tokenNode.GetNode<Label>("Headcount");
+            if (headcountLabel != null) headcountLabel.Text = headcount.ToString();
+
+            // 为底板染色，区分玩家
+            var panel = tokenNode.GetNode<Panel>("Panel");
+            if (panel != null)
+            {
+                var playerInfo = CoreHost.LocalContext.LobbyPlayers.Find(p => p.PlayerId == ownerId);
+                if (playerInfo != null)
+                {
+                    // 给 Panel 挂载动态着色方案
+                    var styleBox = new StyleBoxFlat { BgColor = _colorValues[playerInfo.ColorId] };
+                    panel.AddThemeStyleboxOverride("panel", styleBox);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 【新增】动态维护地图上的造兵倒计时文字
+    /// </summary>
+    private void UpdateUnitBuildFloatingTexts()
+    {
+        var state = CoreHost.WorldSimulationState;
+        
+        // 1. 垃圾回收：清理已经完成造兵的废弃 Label
+        var keysToRemove = new List<HexCoord>();
+        foreach (var kvp in _unitBuildLabels)
+        {
+            if (!state.ActiveUnitBuilds.ContainsKey(kvp.Key))
+            {
+                kvp.Value.QueueFree();
+                keysToRemove.Add(kvp.Key);
+            }
+        }
+        foreach (var key in keysToRemove) _unitBuildLabels.Remove(key);
+
+        // 2. 渲染更新：创建或刷新正在造兵的 Label
+        foreach (var kvp in state.ActiveUnitBuilds)
+        {
+            HexCoord coord = kvp.Key;
+            WorldSimulationState.UnitBuildTask task = kvp.Value;
+            
+            if (!_unitBuildLabels.TryGetValue(coord, out Label label))
+            {
+                label = new Label();
+                label.AddThemeFontSizeOverride("font_size", 22);
+                label.AddThemeColorOverride("font_color", Colors.Yellow); // 使用黄色区别于殖民的白色
+                label.AddThemeColorOverride("font_outline_color", Colors.Black);
+                label.AddThemeConstantOverride("outline_size", 4);
+                
+                label.ZIndex = 100;
+                var offset = MapRenderBridge.CubeToOffset(coord.X, coord.Y, coord.Z);
+                Vector2I cellCoords = new Vector2I(offset.offsetX, offset.offsetY);
+                Vector2 localPos = _groundLayer.MapToLocal(cellCoords);
+                
+                label.Position = localPos + new Vector2(-40, -20);
+                _groundLayer.AddChild(label);
+                _unitBuildLabels[coord] = label;
+            }
+            
+            label.Text = $"招募:{task.RemainingDays}天";
+            label.Modulate = task.PlayerId == CoreHost.LocalContext.MyPlayerId ? Colors.LimeGreen : Colors.IndianRed;
+        }
+        
+        // 如果当前选中面板打开着，且该地块发生进度变化，顺便驱动面板刷新
+        if (_inspectorPanel.Visible && state.ActiveUnitBuilds.ContainsKey(_inputHandler.GetCurrentSelectedHex()))
+        {
+            _inspectorPanel.Inspect(_inputHandler.GetCurrentSelectedHex(), CoreHost.MapConfig.Tiles[_inputHandler.GetCurrentSelectedHex()]);
+        }
+    }
     public override void _ExitTree()
     {
         // 解绑静态系统事件防泄漏
@@ -226,6 +334,9 @@ public partial class MainGameView : Node
             CoreHost.WorldSimulationState.OnDateChanged -= OnDateChangedSync; 
             // 【新增】注销事件防止内存泄漏
             CoreHost.WorldSimulationState.OnTileOwnershipChanged -= OnTileOwnershipChangedSync;
+            // 【新增】注销事件防止内存泄漏
+            CoreHost.WorldSimulationState.OnTileOwnershipChanged -= OnTileOwnershipChangedSync;
+            CoreHost.WorldSimulationState.OnUnitSpawned -= OnUnitSpawnedSync;
         }
     }
 }

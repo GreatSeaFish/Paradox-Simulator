@@ -26,6 +26,8 @@ namespace ParadoxSimulator.Simulation.Systems
 
             simulationState.PlayerPositions.Clear();
             simulationState.PlayerFunds.Clear(); // 【新增】清空历史资金
+            simulationState.ActiveUnitBuilds.Clear();
+            simulationState.DeployedUnits.Clear();
             
             foreach (var player in localContext.LobbyPlayers)  
             {

@@ -1,13 +1,42 @@
 [gd_scene format=3 uid="uid://c84nc0mjm6xqx"]
 
-[node name="MilitaryToken" type="Node2D" unique_id=1916310380]
+[ext_resource type="Texture2D" uid="uid://c2g6lkosg2iw2" path="res://Assets/Infantry.png" id="1_211tt"]
+[ext_resource type="Texture2D" uid="uid://bx1ifatrlyd65" path="res://Assets/Fortify.png" id="1_xtu3o"]
+
+[node name="MilitaryToken" type="Node2D" unique_id=1547274118]
+scale = Vector2(0.7199973, 0.7199973)
+
+[node name="Panel" type="Panel" parent="." unique_id=1420283854]
+offset_left = -92.0
+offset_top = -30.375
+offset_right = 93.0
+offset_bottom = 24.625
+metadata/_edit_use_anchors_ = true
+
+[node name="Emblem" type="Sprite2D" parent="." unique_id=1986011967]
+position = Vector2(68.000015, -2.3749993)
+scale = Vector2(0.12792967, 0.12792967)
+texture = ExtResource("1_xtu3o")
 
 [node name="Sprite2D" type="Sprite2D" parent="." unique_id=1497660500]
+position = Vector2(-59, -2.375)
+scale = Vector2(1.09375, 1.09375)
+texture = ExtResource("1_211tt")
 
-[node name="Label" type="Label" parent="." unique_id=702094673]
-offset_right = 120.0
-offset_bottom = 23.0
+[node name="Headcount" type="Label" parent="." unique_id=702094673]
+offset_left = -29.0
+offset_top = -19.375
+offset_right = 28.0
+offset_bottom = 15.625
+theme_override_font_sizes/font_size = 25
+text = "1000"
+metadata/_edit_use_anchors_ = true
 
-[node name="ColorRect" type="ColorRect" parent="." unique_id=1477430517]
-offset_right = 40.0
-offset_bottom = 40.0
+[node name="MoraleProgressBar" type="ProgressBar" parent="." unique_id=684804946]
+offset_left = -92.0
+offset_top = 25.625
+offset_right = 93.0
+offset_bottom = 35.625
+value = 50.0
+show_percentage = false
+metadata/_edit_use_anchors_ = true
