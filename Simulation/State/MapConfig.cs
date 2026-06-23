@@ -10,4 +10,6 @@ public class MapConfig
 {
     // 静态地形数据（来自 JSON 配置解析）
     public Dictionary<HexCoord, HexTileData> Tiles { get; } = new Dictionary<HexCoord, HexTileData>();
+    
+    public Dictionary<HexCoord, BorderData> Boundaries { get; } = new Dictionary<HexCoord, BorderData>();
 }

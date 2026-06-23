@@ -11,8 +11,11 @@
 [ext_resource type="Texture2D" uid="uid://dgvtem46t1at8" path="res://Assets/MapTile/Forest_01.png" id="9_e5jv3"]
 [ext_resource type="Script" uid="uid://cp5tgm36lis0m" path="res://View/Interaction/TerritoryVisualizer.cs" id="10_4kru3"]
 [ext_resource type="Texture2D" uid="uid://bhpgdo8anixjk" path="res://Assets/MapTile/BorderSheet.png" id="10_5jpa1"]
+[ext_resource type="Texture2D" uid="uid://2tpf8xihp5pc" path="res://Assets/MapTile/RiverTopLift.png" id="10_il77p"]
+[ext_resource type="Texture2D" uid="uid://c2gqldyyf1548" path="res://Assets/MapTile/RiverTopRight.png" id="11_luv0c"]
 [ext_resource type="Texture2D" uid="uid://d1a82mld3fmul" path="res://Assets/SelectMark.png" id="11_rcan4"]
 [ext_resource type="Script" uid="uid://bkp1w3ofg4udx" path="res://View/Interaction/MapInputHandler.cs" id="12_dj4t6"]
+[ext_resource type="Texture2D" uid="uid://c6cd5odyfs8et" path="res://Assets/MapTile/RiverVertical.png" id="12_mx1os"]
 [ext_resource type="Script" uid="uid://bqqwhu7307tpm" path="res://View/PlayerCamera.cs" id="13_jposj"]
 [ext_resource type="Script" uid="uid://byn3v6nw4j3co" path="res://View/Components/FundsDisplayBar.cs" id="15_il77p"]
 [ext_resource type="Script" uid="uid://b41v4grqjd1oc" path="res://View/Components/TileInspectorPanel.cs" id="16_hy0gp"]
@@ -62,6 +65,31 @@ sources/2 = SubResource("TileSetAtlasSource_yf1fa")
 sources/3 = SubResource("TileSetAtlasSource_wnwyg")
 sources/4 = SubResource("TileSetAtlasSource_78mu5")
 sources/5 = SubResource("TileSetAtlasSource_6aw3a")
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_hy0gp"]
+texture = ExtResource("10_il77p")
+margins = Vector2i(52, 69)
+texture_region_size = Vector2i(80, 80)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_e5jv3"]
+texture = ExtResource("11_luv0c")
+margins = Vector2i(52, 69)
+texture_region_size = Vector2i(80, 80)
+0:0/0 = 0
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_5jpa1"]
+texture = ExtResource("12_mx1os")
+margins = Vector2i(54, 68)
+texture_region_size = Vector2i(80, 80)
+0:0/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_4kru3"]
+tile_shape = 3
+tile_size = Vector2i(80, 80)
+sources/0 = SubResource("TileSetAtlasSource_hy0gp")
+sources/1 = SubResource("TileSetAtlasSource_e5jv3")
+sources/2 = SubResource("TileSetAtlasSource_5jpa1")
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_xq600"]
 texture = ExtResource("9_e5jv3")
@@ -480,6 +508,10 @@ script = ExtResource("2_iel32")
 [node name="GroundLayer" type="TileMapLayer" parent="WorldMapRender" unique_id=1358870462]
 y_sort_enabled = true
 tile_set = SubResource("TileSet_obesg")
+
+[node name="RiverLayer" type="TileMapLayer" parent="WorldMapRender" unique_id=79515476]
+position = Vector2(40, 40)
+tile_set = SubResource("TileSet_4kru3")
 
 [node name="SurfaceLayer" type="TileMapLayer" parent="WorldMapRender" unique_id=1139786430]
 y_sort_enabled = true

@@ -12,6 +12,8 @@ public class MapLoader(MapConfig config, WorldSimulationState simulationState)
     {
         public string ExportTime { get; set; }
         public List<HexTileData> Tiles { get; set; }
+        
+        public List<BorderData> Borders { get; set; } // 添加这一行
     }
 
     public MapExportData LoadMap(string filePath)
@@ -39,6 +41,7 @@ public class MapLoader(MapConfig config, WorldSimulationState simulationState)
     public void LoadMapData(string jsonPath)
     {
         config.Tiles.Clear();
+        config.Boundaries.Clear(); // 【新增】清空边界数据
         simulationState.TileOwners.Clear(); // 【新增】每次重新加载地图时，清空归属数据
         
         try
@@ -52,6 +55,16 @@ public class MapLoader(MapConfig config, WorldSimulationState simulationState)
                 // 【新增】初始化时，所有地块默认归属为 -1（中立）
                 simulationState.TileOwners[coord] = -1; 
             }
+            // 【新增】载入边界数据
+            if (mapExportData.Borders != null)
+            {
+                foreach (var border in mapExportData.Borders)
+                {
+                    var coord = new HexCoord(border.X, border.Y, border.Z);
+                    config.Boundaries[coord] = border;
+                }
+            }
+            
             ClientDebugger.LogHandler?.Invoke($"[MapData] 成功加载并构建地图数据，共 {config.Tiles.Count} 个地块。");
         }
         catch (Exception ex)
