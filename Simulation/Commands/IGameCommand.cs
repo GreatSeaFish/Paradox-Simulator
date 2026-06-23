@@ -1,6 +1,7 @@
 ﻿// Core\System\CommandSystem\IGameCommand.cs
 
 using ParadoxSimulator.Simulation.State;
+using ParadoxSimulator.Simulation.State.WorldModel;
 using ParadoxSimulator.Simulation.Systems;
 
 namespace ParadoxSimulator.Simulation.Commands

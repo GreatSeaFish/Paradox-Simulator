@@ -5,6 +5,7 @@ using ParadoxSimulator.Simulation.State;
 using ParadoxSimulator.Simulation.Systems;
 using ParadoxSimulator.Simulation.Systems.SettlementSystem;
 using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
+using ParadoxSimulator.Simulation.State.WorldModel;
 
 public partial class CoreHost : Node
 {

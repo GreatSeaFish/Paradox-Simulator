@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Shared.Math;
 using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 
-namespace ParadoxSimulator.Simulation.State;
+namespace ParadoxSimulator.Simulation.State.WorldModel;
 
 /// <summary>
 /// 核心帧同步状态仓库 (必须保证多端绝对一致)
@@ -11,6 +11,7 @@ namespace ParadoxSimulator.Simulation.State;
 public class WorldSimulationState
 {
     // ================== 实体 ==================
+    
     // 全房间所有玩家的最新逻辑帧坐标
     public Dictionary<int, FixVector2> PlayerPositions { get; set; } = new Dictionary<int, FixVector2>();
 
@@ -23,19 +24,19 @@ public class WorldSimulationState
     // 局内全房间所有玩家的“本月资金预期变化值” (Key: 玩家ID, Value: 预计变化金额)
     public Dictionary<int, int> PlayerMonthlyFundsChange { get; set; } = new Dictionary<int, int>();
     
-    // 【新增】局内全网所有正在进行的殖民任务 (Key: 目标地块坐标, Value: 殖民任务详情)
+    // 局内全网所有正在进行的殖民任务 (Key: 目标地块坐标, Value: 殖民任务详情)
     public Dictionary<HexCoord, ColonizationTask> ActiveColonizations { get; set; } = new Dictionary<HexCoord, ColonizationTask>();
     
-    // 【新增】局内全网所有正在进行的造兵任务 (Key: 目标地块坐标, Value: 造兵任务详情)
+    // 局内全网所有正在进行的造兵任务 (Key: 目标地块坐标, Value: 造兵任务详情)
     public Dictionary<HexCoord, UnitBuildTask> ActiveUnitBuilds { get; set; } = new Dictionary<HexCoord, UnitBuildTask>();
 
-    // 【新增】局内全网所有已部署的军事单位 (Key: 目标地块坐标, Value: 单位详情)
+    // 局内全网所有已部署的军事单位 (Key: 目标地块坐标, Value: 单位详情)
     // 假设每个地块最多驻扎一支大部队
     public Dictionary<HexCoord, MilitaryUnit> DeployedUnits { get; set; } = new Dictionary<HexCoord, MilitaryUnit>();
+    
     // ================== 时钟 ==================
     
-    
-    // 当前档位（0=暂停, 1~5=正常速度），你可以根据需要设定初始默认几速
+    // 当前档位（0=暂停, 1~5=正常速度）
     public int _currentSpeedLevel = 0; 
     
     // 累计经历的逻辑帧数
@@ -44,8 +45,8 @@ public class WorldSimulationState
     // 游戏经过的天数
     public int GameDays { get; set; } = 0;
     
-    // 模拟现实的日历字段 (默认从 1年4月1日 开始)
-    public DateTime CurrentDate { get; set; } = new DateTime(1, 4, 1);
+    // 【重构】模拟现实的日历字段，改用自定义确定的 GameDateTime (默认从 1年4月1日 开始)
+    public GameDateTime CurrentDate { get; set; } = new GameDateTime(1, 4, 1);
 
     // ==========================================
     // =====          数据变更事件           =====
@@ -59,17 +60,19 @@ public class WorldSimulationState
 
     /// <summary> 月度预期/账单资金变动事件（通知 UI 的 Change） </summary>
     public event Action<int, int>? OnPlayerMonthlyExpectedChanged;
-// 【新增】解耦后的时间与结算专属事件
-    public event Action<DateTime>? OnDateChanged;
+
+    /// <summary> 【重构】解耦后的时间与结算专属事件（参数调整为确定性 GameDateTime） </summary>
+    public event Action<GameDateTime>? OnDateChanged;
     public event Action? OnDailySettlementRequired;
     public event Action? OnMonthlySettlementRequired;
-    // 【新增】当地块的归属权发生实质性变更时触发
+    
+    // 当地块的归属权发生实质性变更时触发
     public event Action<HexCoord, int>? OnTileOwnershipChanged;
     
-    // 【新增】当造兵任务开始时触发 (用于UI显示造兵倒计时)
+    // 当造兵任务开始时触发 (用于UI显示造兵倒计时)
     public event Action<HexCoord, int>? OnUnitBuildStarted;
     
-    // 【新增】当部队正式部署时触发 (用于实例化 MilitaryToken)
+    // 当部队正式部署时触发 (用于实例化 MilitaryToken)
     public event Action<HexCoord, int, int>? OnUnitSpawned;
     
     /// <summary>
@@ -93,7 +96,7 @@ public class WorldSimulationState
     // ==========================================
     
     /// <summary>
-    /// 【新增】由 ServerCommandHandler 在处理到特定的逻辑帧指令时调用
+    /// 由 ServerCommandHandler 在处理到特定的逻辑帧指令时调用
     /// </summary>
     public void SetTimeSpeed(int level)
     {
@@ -104,22 +107,27 @@ public class WorldSimulationState
         // 触发事件，通知表现层刷新 UI 的 Tab 高亮
         OnSpeedChanged?.Invoke(_currentSpeedLevel);
     }
+    
     /// <summary>
-    /// 【核心步进驱动】向前演进游戏内的一天，级联触发事件和结算信号
+    /// 【核心步进驱动】向前演进游戏内的一天，级联触发事件和结算信号（完全断开对系统 DateTime 的依赖）
     /// </summary>
     public void AdvanceDay()
     {
         GameDays++;
+        
+        // 记录演进前的月份，用于跨月断言
         int oldMonth = CurrentDate.Month;
+        
+        // 使用确定性方法向前推进一天
         CurrentDate = CurrentDate.AddDays(1);
         
-        // 1. 优先抛出日期变更事件驱动 UI
+        // 1. 优先抛出日期变更事件驱动 UI 展现
         OnDateChanged?.Invoke(CurrentDate);
         
-        // 2. 触发每日结算业务
+        // 2. 触发每日结算业务逻辑（如每日消耗、任务倒计时扣减等）
         OnDailySettlementRequired?.Invoke();
         
-        // 3. 检查是否跨月，触发跨月结算
+        // 3. 检查是否跨月，触发跨月结算（如月度财政资源产出/扣除）
         if (CurrentDate.Month != oldMonth)
         {
             OnMonthlySettlementRequired?.Invoke();
@@ -140,7 +148,7 @@ public class WorldSimulationState
     }
     
     /// <summary>
-    /// 【新增】部署部队并通知渲染层
+    /// 部署部队并通知渲染层
     /// </summary>
     public void SpawnUnit(HexCoord coord, int ownerId, int headcount)
     {
@@ -193,7 +201,7 @@ public class WorldSimulationState
     {
         if (TileOwners.ContainsKey(coord))
         {
-            // 【核心修改】如果新主人和老主人不同，才修改并抛出事件
+            // 如果新主人和老主人不同，才修改并抛出事件
             if (TileOwners[coord] != playerId)
             {
                 TileOwners[coord] = playerId;
@@ -201,7 +209,6 @@ public class WorldSimulationState
             }
         }
     }
-    
     
     // ==========================================
     // =====          数据结构               =====
@@ -213,7 +220,6 @@ public class WorldSimulationState
     public class ColonizationTask
     {
         public int PlayerId { get; set; }
-        
         // 殖民剩余天数，初始为 100
         public int RemainingDays { get; set; } 
     }

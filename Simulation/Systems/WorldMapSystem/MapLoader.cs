@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using ParadoxSimulator.Simulation.State;
-
+using ParadoxSimulator.Simulation.State.WorldModel;
 namespace ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 public class MapLoader(MapConfig config, WorldSimulationState simulationState)
 {

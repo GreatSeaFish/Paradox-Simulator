@@ -3,6 +3,7 @@ using Godot;
 using System.Collections.Generic;
 using FixedMath.NET;
 using ParadoxSimulator.Simulation.State;
+using ParadoxSimulator.Simulation.State.WorldModel;
 using Shared.Math;
 using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 using Shared.Protocol;
@@ -176,12 +177,12 @@ public partial class MainGameView : Node
         }
     }
 
-    private void OnDateChangedSync(System.DateTime newDate)
+    private void OnDateChangedSync(GameDateTime newDate)
     {
         UpdateCalendarText(newDate); 
     }
 
-    private void UpdateCalendarText(System.DateTime date)
+    private void UpdateCalendarText(GameDateTime date)
     {
         _gameCalendarLabel.Text = $"第{date.Year}年{date.Month}月{date.Day}日"; 
     }

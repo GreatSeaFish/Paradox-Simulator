@@ -3,7 +3,7 @@ using FixedMath.NET;
 using ParadoxSimulator.Simulation.State;
 using ParadoxSimulator.Simulation.Systems;
 using Shared.Math;
-
+using ParadoxSimulator.Simulation.State.WorldModel;
 namespace ParadoxSimulator.Simulation.Commands
 {
     public class LaserMoveCommand : IGameCommand

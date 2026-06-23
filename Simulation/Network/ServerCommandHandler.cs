@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using ParadoxSimulator.Simulation.Commands;
 using ParadoxSimulator.Simulation.State;
+using ParadoxSimulator.Simulation.State.WorldModel;
 using ParadoxSimulator.Simulation.Systems;
 using Shared.Protocol;
 

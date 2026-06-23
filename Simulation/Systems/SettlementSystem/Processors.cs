@@ -2,7 +2,7 @@
 using System.Linq;
 using ParadoxSimulator.Simulation.State;
 using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
-
+using ParadoxSimulator.Simulation.State.WorldModel;
 namespace ParadoxSimulator.Simulation.Systems.SettlementSystem
 {
     /// <summary>

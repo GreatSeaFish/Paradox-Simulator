@@ -1,7 +1,7 @@
 ﻿using ParadoxSimulator.Simulation.State;
 using ParadoxSimulator.Simulation.Systems;
 using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
-
+using ParadoxSimulator.Simulation.State.WorldModel;
 namespace ParadoxSimulator.Simulation.Commands
 {
     public class ColonizeCommand : IGameCommand

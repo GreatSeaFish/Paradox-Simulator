@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using ParadoxSimulator.Simulation.State;
-
+using ParadoxSimulator.Simulation.State.WorldModel;
 namespace ParadoxSimulator.Simulation.Systems.SettlementSystem
 {
     public static class FinanceHelper

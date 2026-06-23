@@ -3,6 +3,7 @@ using Godot;
 using System;
 using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 using Shared.Protocol;
+using ParadoxSimulator.Simulation.State.WorldModel;
 
 public partial class TileInspectorPanel : PanelContainer
 {

@@ -1,6 +1,6 @@
 ﻿using ParadoxSimulator.Simulation.State;
 
-
+using ParadoxSimulator.Simulation.State.WorldModel;
 // 策略模式
 namespace ParadoxSimulator.Simulation.Systems.SettlementSystem
 {

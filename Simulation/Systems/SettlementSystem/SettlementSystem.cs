@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using ParadoxSimulator.Simulation.State;
-
+using ParadoxSimulator.Simulation.State.WorldModel;
 namespace ParadoxSimulator.Simulation.Systems.SettlementSystem
 {
     public class SettlementSystem

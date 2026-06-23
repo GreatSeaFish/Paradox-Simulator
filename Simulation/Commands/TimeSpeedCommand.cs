@@ -2,7 +2,7 @@
 
 using ParadoxSimulator.Simulation.State;
 using ParadoxSimulator.Simulation.Systems;
-
+using ParadoxSimulator.Simulation.State.WorldModel;
 namespace ParadoxSimulator.Simulation.Commands
 {
     public class TimeSpeedCommand : IGameCommand

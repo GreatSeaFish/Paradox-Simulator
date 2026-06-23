@@ -1,4 +1,5 @@
 ﻿using ParadoxSimulator.Simulation.State;
+using ParadoxSimulator.Simulation.State.WorldModel;
 using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 
 namespace ParadoxSimulator.Simulation.Commands
