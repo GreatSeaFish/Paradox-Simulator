@@ -1,6 +1,7 @@
 ﻿using FixedMath.NET;
 using Shared.Math;
 using ParadoxSimulator.Simulation.State;
+using ParadoxSimulator.Simulation.Systems.SettlementSystem;
 using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 
 namespace ParadoxSimulator.Simulation.Systems
@@ -11,7 +12,7 @@ namespace ParadoxSimulator.Simulation.Systems
     /// 全局状态管理器
     /// 职责：维护当前游戏所处的状态，并负责在状态切换时初始化/清理相应的逻辑数据
     /// </summary>
-    public class GameStateSystem(GameState gameState, WorldSimulationState simulationState, LocalContext localContext, SettlementSystem settlementSystem)
+    public class GameStateSystem(GameState gameState, WorldSimulationState simulationState, LocalContext localContext, SettlementSystem.SettlementSystem settlementSystem)
     {
 
         /// <summary>
@@ -42,10 +43,11 @@ namespace ParadoxSimulator.Simulation.Systems
                 simulationState.SetTileOwner(spawnHex, player.PlayerId);
                 
                 // 为每位参与的玩家初始化资金仓库
+                // CoreHost.SettlementSystem.RecalculateMonthlyIncome(playerId);
+                // 1. 为每位参与的玩家初始化资金仓库
                 simulationState.PlayerFunds[player.PlayerId] = 0;
-                CoreHost.SettlementSystem.RecalculateMonthlyIncome(playerId);
-                simulationState.NotifyFundsChanged(playerId);
-                
+                FinanceHelper.RecalculateMonthlyIncome(simulationState, player.PlayerId);
+                simulationState.NotifyFundsChanged(player.PlayerId);
             }
 
         }
