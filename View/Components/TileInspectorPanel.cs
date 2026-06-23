@@ -2,6 +2,7 @@
 using Godot;
 using System;
 using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
+using Shared.Protocol;
 
 public partial class TileInspectorPanel : PanelContainer
 {
@@ -116,16 +117,28 @@ public partial class TileInspectorPanel : PanelContainer
 
     private void OnActionClicked()
     {
-        // 根据当前的按钮模式，发送不同的帧同步指令
+        // 根据当前的按钮模式，通过统一的入队接口发送帧同步指令
         if (_currentActionMode == ActionMode.Colonize)
         {
-            CoreHost.CommandSender.SendColonizeCommand(_currentSelectedHex);
+            CoreHost.CommandSender.EnqueueCommand(new PlayerCommand
+            {
+                InputType = CommandType.Colonize, // 修复点：殖民枚举
+                TargetHexX = (short)_currentSelectedHex.X,
+                TargetHexY = (short)_currentSelectedHex.Y,
+                TargetHexZ = (short)_currentSelectedHex.Z
+            });
         }
         else if (_currentActionMode == ActionMode.BuildUnit)
         {
-            CoreHost.CommandSender.SendBuildUnitCommand(_currentSelectedHex);
+            CoreHost.CommandSender.EnqueueCommand(new PlayerCommand
+            {
+                InputType = CommandType.BuildUnit, // 修复点：造兵枚举
+                TargetHexX = (short)_currentSelectedHex.X,
+                TargetHexY = (short)_currentSelectedHex.Y,
+                TargetHexZ = (short)_currentSelectedHex.Z
+            });
         }
-        
+    
         // 临时禁用按钮，防止帧同步广播回来前玩家疯狂连点
         _actionButton.Disabled = true; 
         _actionButton.Text = "指令已发送...";

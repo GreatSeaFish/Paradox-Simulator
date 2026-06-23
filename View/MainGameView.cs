@@ -5,6 +5,7 @@ using FixedMath.NET;
 using ParadoxSimulator.Simulation.State;
 using Shared.Math;
 using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
+using Shared.Protocol;
 
 public partial class MainGameView : Node
 {
@@ -152,9 +153,19 @@ public partial class MainGameView : Node
         }
     }
 
+    // private void OnTimeTabClicked(long tabIndex)
+    // {
+    //     CoreHost.CommandSender.SendTimeSpeedCommand((int)tabIndex);
+    // }
+    
     private void OnTimeTabClicked(long tabIndex)
     {
-        CoreHost.CommandSender.SendTimeSpeedCommand((int)tabIndex); 
+        // 使用统一的入队接口，传入包装好的枚举和参数
+        CoreHost.CommandSender.EnqueueCommand(new PlayerCommand
+        {
+            InputType = CommandType.TimeSpeedControl,
+            ActionValue = (int)tabIndex
+        });
     }
 
     private void OnSpeedChangedSync(int newSpeedLevel)
