@@ -40,3 +40,12 @@ offset_bottom = 35.625
 value = 50.0
 show_percentage = false
 metadata/_edit_use_anchors_ = true
+
+[node name="MoveProgressBar" type="ProgressBar" parent="." unique_id=1021817233]
+offset_left = -93.0559
+offset_top = -87.500336
+offset_right = 91.9441
+offset_bottom = -77.500336
+value = 50.0
+show_percentage = false
+metadata/_edit_use_anchors_ = true

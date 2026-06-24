@@ -66,12 +66,20 @@ public partial class WorldSimulationState
     /// <summary>
     /// 部署部队并通知渲染层
     /// </summary>
+    // --- 在 StateManagerMethods.cs 中修改生成/移除逻辑 ---
     public void SpawnUnit(HexCoord coord, int ownerId, int headcount)
     {
-        // 写入状态机字典
-        DeployedUnits[coord] = new MilitaryUnit { OwnerId = ownerId, Headcount = headcount };
-        // 抛出事件通知外层 UI 生成预制体
-        OnUnitSpawned?.Invoke(coord, ownerId, headcount);
+        var unit = new MilitaryUnit 
+        { 
+            UnitId = NextUnitId++, 
+            OwnerId = ownerId, 
+            Headcount = headcount,
+            CurrentLocation = coord
+        };
+        DeployedUnits[unit.UnitId] = unit;
+    
+        // 抛出事件通知渲染层
+        OnUnitSpawned?.Invoke(unit);
     }
     
     /// <summary>
@@ -125,5 +133,14 @@ public partial class WorldSimulationState
             }
         }
     }
-    
+    /// <summary>
+    /// 移除指定地块上的部队并通知渲染层
+    /// </summary>
+    public void RemoveUnit(int unitId)
+    {
+        if (DeployedUnits.Remove(unitId))
+        {
+            OnUnitRemoved?.Invoke(unitId);
+        }
+    }
 }

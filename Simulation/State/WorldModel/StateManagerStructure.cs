@@ -1,4 +1,7 @@
-﻿namespace ParadoxSimulator.Simulation.State.WorldModel;
+﻿using System.Collections.Generic;
+using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
+
+namespace ParadoxSimulator.Simulation.State.WorldModel;
 
 public partial class WorldSimulationState
 {
@@ -30,10 +33,25 @@ public partial class WorldSimulationState
     /// <summary>
     /// 纯数据结构：记录部署在地块上的军事单位
     /// </summary>
+    // 1. 修改部队实体：加上 UnitId 和当前位置
     public class MilitaryUnit
     {
+        public int UnitId { get; set; }
         public int OwnerId { get; set; }
-        // 当前兵力，初始为 1000
-        public int Headcount { get; set; } 
+        public int Headcount { get; set; }
+        public HexCoord CurrentLocation { get; set; } 
     }
+    
+    // 2. 修改行军任务：直接绑定 UnitId，不再散装数据
+    public class UnitMoveTask
+    {
+        public int TaskId { get; set; }
+        public int UnitId { get; set; } // 替代原有的 PlayerId / Headcount / CurrentLocation
+        public int PlayerId { get; set; }
+        public List<HexCoord> Waypoints { get; set; } = new List<HexCoord>();
+        public int TotalDaysForNextTile { get; set; }
+        public int RemainingDaysForNextTile { get; set; }
+    }
+    
+    
 }

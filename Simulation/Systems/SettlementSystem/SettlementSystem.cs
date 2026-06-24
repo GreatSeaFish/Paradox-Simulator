@@ -21,6 +21,7 @@ namespace ParadoxSimulator.Simulation.Systems.SettlementSystem
             RegisterProcessor(new ColonizationProcessor());
             RegisterProcessor(new UnitBuildProcessor());
             RegisterProcessor(new MonthlyFundsProcessor());
+            RegisterProcessor(new UnitMoveProcessor());
         }
 
         /// <summary>

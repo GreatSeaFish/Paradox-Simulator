@@ -19,8 +19,6 @@ namespace ParadoxSimulator.Simulation.Commands
             // 3. 规则校验 B：该地块不能已经在造兵了 (防止帧同步连点并发)
             if (state.ActiveUnitBuilds.ContainsKey(TargetHex)) return;
             
-            // 4. 规则校验 C：该地块上不能已经有部署好的部队 (假设一格只能有一支部队)
-            if (state.DeployedUnits.ContainsKey(TargetHex)) return;
 
             // 5. 规则校验 D：检查资金是否足够 (造价 10 块钱)
             if (!state.PlayerFunds.TryGetValue(playerId, out int currentFunds) || currentFunds < 10) return;

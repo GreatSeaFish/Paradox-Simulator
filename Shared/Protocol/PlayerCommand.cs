@@ -20,6 +20,10 @@ public class PlayerCommand : INetSerializable
     public short TargetHexY { get; set; }
     public short TargetHexZ { get; set; }
     
+    public short SourceHexX { get; set; }
+    public short SourceHexY { get; set; }
+    public short SourceHexZ { get; set; }
+    
     public void Serialize(NetDataWriter writer)
     {
         writer.Put(PlayerId);
@@ -45,6 +49,11 @@ public class PlayerCommand : INetSerializable
                 writer.Put(TargetHexX);
                 writer.Put(TargetHexY);
                 writer.Put(TargetHexZ);
+                break;
+            // 在 Serialize 方法的 switch 中新增分支：
+            case CommandType.UnitMove:
+                writer.Put(ActionValue); // 【核心】：借用 ActionValue 写入唯一的部队 ID
+                writer.Put(TargetHexX); writer.Put(TargetHexY); writer.Put(TargetHexZ);
                 break;
         }
     }
@@ -74,6 +83,11 @@ public class PlayerCommand : INetSerializable
                 TargetHexX = reader.GetShort();
                 TargetHexY = reader.GetShort();
                 TargetHexZ = reader.GetShort();
+                break;
+            // 在 Deserialize 方法的 switch 中新增分支：
+            case CommandType.UnitMove:
+                ActionValue = reader.GetInt(); // 【核心】：读取部队 ID
+                TargetHexX = reader.GetShort(); TargetHexY = reader.GetShort(); TargetHexZ = reader.GetShort();
                 break;
         }
     }

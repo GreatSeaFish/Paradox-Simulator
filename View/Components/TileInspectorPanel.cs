@@ -63,12 +63,6 @@ public partial class TileInspectorPanel : PanelContainer
                     _actionButton.Disabled = true;
                     _currentActionMode = ActionMode.None;
                 }
-                else if (state.DeployedUnits.ContainsKey(coord))
-                {
-                    _actionButton.Text = "已有驻军";
-                    _actionButton.Disabled = true;
-                    _currentActionMode = ActionMode.None;
-                }
                 else
                 {
                     _actionButton.Text = "招募部队 (30天 | -10G)";

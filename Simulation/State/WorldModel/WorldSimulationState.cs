@@ -10,31 +10,34 @@ namespace ParadoxSimulator.Simulation.State.WorldModel;
 /// </summary>
 public partial class WorldSimulationState
 {
-    
     // ================== 实体 ==================
     
     // 全房间所有玩家的最新逻辑帧坐标
-    public Dictionary<int, FixVector2> PlayerPositions { get; set; } = new Dictionary<int, FixVector2>();
+    public Dictionary<int, FixVector2> PlayerPositions { get; } = new Dictionary<int, FixVector2>();
 
     // 地块动态运行时的归属数据 (Key: 坐标, Value: 玩家ID，-1 表示中立)
-    public Dictionary<HexCoord, int> TileOwners { get; set; } = new Dictionary<HexCoord, int>();
+    public Dictionary<HexCoord, int> TileOwners { get; } = new Dictionary<HexCoord, int>();
     
     // 局内全房间所有玩家的确定性资金数据 (Key: 玩家ID, Value: 金额)
-    public Dictionary<int, int> PlayerFunds { get; set; } = new Dictionary<int, int>();
+    public Dictionary<int, int> PlayerFunds { get; } = new Dictionary<int, int>();
     
     // 局内全房间所有玩家的“本月资金预期变化值” (Key: 玩家ID, Value: 预计变化金额)
-    public Dictionary<int, int> PlayerMonthlyFundsChange { get; set; } = new Dictionary<int, int>();
+    public Dictionary<int, int> PlayerMonthlyFundsChange { get; } = new Dictionary<int, int>();
     
     // 局内全网所有正在进行的殖民任务 (Key: 目标地块坐标, Value: 殖民任务详情)
-    public Dictionary<HexCoord, ColonizationTask> ActiveColonizations { get; set; } = new Dictionary<HexCoord, ColonizationTask>();
+    public Dictionary<HexCoord, ColonizationTask> ActiveColonizations { get; } = new Dictionary<HexCoord, ColonizationTask>();
     
     // 局内全网所有正在进行的造兵任务 (Key: 目标地块坐标, Value: 造兵任务详情)
-    public Dictionary<HexCoord, UnitBuildTask> ActiveUnitBuilds { get; set; } = new Dictionary<HexCoord, UnitBuildTask>();
+    public Dictionary<HexCoord, UnitBuildTask> ActiveUnitBuilds { get; } = new Dictionary<HexCoord, UnitBuildTask>();
 
     // 局内全网所有已部署的军事单位 (Key: 目标地块坐标, Value: 单位详情)
     // 假设每个地块最多驻扎一支大部队
-    public Dictionary<HexCoord, MilitaryUnit> DeployedUnits { get; set; } = new Dictionary<HexCoord, MilitaryUnit>();
+    public Dictionary<int, MilitaryUnit> DeployedUnits { get; } = new Dictionary<int, MilitaryUnit>();
+    public int NextUnitId { get; set; } = 1;
     
+    // 局内全网所有正在行军的部队 (Key: 任务唯一标识ID, Value: 移动任务详情)
+    public Dictionary<int, UnitMoveTask> ActiveUnitMoves { get; } = new Dictionary<int, UnitMoveTask>();
+    public int NextMoveTaskId { get; set; } = 1;
     
     // ================== 时钟 ==================
     

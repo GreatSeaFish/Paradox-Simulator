@@ -6,6 +6,7 @@ using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 
 public partial class MapInputHandler : Node2D
 {
+    public event Action<Rect2>? OnBoxSelectedRect;
     private TileMapLayer _groundLayer = null!;
     private Sprite2D _selectMark = null!;
     private ColorRect _selectionBox = null!;
@@ -13,8 +14,12 @@ public partial class MapInputHandler : Node2D
     // 对外暴露的交互事件 [cite: 603, 605]
     public event Action<HexCoord, HexTileData>? OnTileSelected;
     public event Action? OnTileDeselected;
-
+// 【新增】：右键点击事件
+    public event Action<HexCoord>? OnRightClicked;
+    // 【新增】：框选完成事件
+    public event Action<List<HexCoord>>? OnBoxSelectedHexes;
     private bool _isDragging = false;
+    private Vector2 _dragStartGlobalPos = Vector2.Zero; // 【新增】：这是真实世界物理坐标（框兵用的）
     private Vector2 _dragStartPos = Vector2.Zero;
     private const float DragThreshold = 5.0f; // [cite: 602]
     private HexCoord? _currentSelectedHex = null; // [cite: 604]
@@ -28,31 +33,52 @@ public partial class MapInputHandler : Node2D
     public HexCoord GetCurrentSelectedHex() => _currentSelectedHex ?? default;
     public override void _UnhandledInput(InputEvent @event)
     {
+        
         // 1. 鼠标点击与拖拽状态转换 [cite: 622]
-        if (@event is InputEventMouseButton mb && mb.ButtonIndex == MouseButton.Left)
+        if (@event is InputEventMouseButton mb)
         {
-            if (mb.Pressed)
+            // 【新增】：右键点击检测 (用于下达移动指令)
+            if (mb.ButtonIndex == MouseButton.Right && mb.Pressed)
             {
-                _dragStartPos = GetViewport().GetMousePosition(); // [cite: 623]
-                _isDragging = true; // [cite: 624]
-            }
-            else if (_isDragging)
-            {
-                _isDragging = false; // [cite: 624]
-                if (_selectionBox != null) _selectionBox.Visible = false; // [cite: 625]
-
-                Vector2 dragEndPos = GetViewport().GetMousePosition(); // [cite: 625]
-                float distance = _dragStartPos.DistanceTo(dragEndPos); // [cite: 625]
+                Vector2 screenPos = GetViewport().GetMousePosition();
+                Vector2 localMousePos = ToLocal(GetGlobalMousePosition() - (GetViewport().GetMousePosition() - screenPos));
+                Vector2I mapCell = _groundLayer.LocalToMap(localMousePos);
+                var cubeCoords = MapRenderBridge.OffsetToCube(mapCell.X, mapCell.Y);
                 
-                if (distance < DragThreshold)
+                OnRightClicked?.Invoke(new HexCoord(cubeCoords.cubeX, cubeCoords.cubeY, cubeCoords.cubeZ));
+                GetViewport().SetInputAsHandled();
+                return;
+            }
+
+            if (mb.ButtonIndex == MouseButton.Left)
+            {
+                if (mb.Pressed)
                 {
-                    HandleSingleClick(dragEndPos); // [cite: 626]
+                    _dragStartPos = GetViewport().GetMousePosition(); // [cite: 688]
+                    _dragStartGlobalPos = GetGlobalMousePosition();   // 【新增】：记录此时的真实物理坐标
+                    _isDragging = true; // [cite: 689]
                 }
-                else
+                else if (_isDragging)
                 {
-                    HandleBoxSelection(_dragStartPos, dragEndPos); // [cite: 627]
+                    _isDragging = false; // [cite: 690]
+                    if (_selectionBox != null) _selectionBox.Visible = false; // [cite: 691]
+
+                    Vector2 dragEndPos = GetViewport().GetMousePosition(); // [cite: 692]
+                    Vector2 dragEndGlobalPos = GetGlobalMousePosition();   // 【新增】：记录此时真实的物理终点坐标
+                    float distance = _dragStartPos.DistanceTo(dragEndPos); // [cite: 693]
+
+                    if (distance < DragThreshold)
+                    {
+                        HandleSingleClick(dragEndPos); // [cite: 694]
+                    }
+                    else
+                    {
+                        // 【修改】：把纯正的物理坐标传进去！
+                        HandleBoxSelection(_dragStartGlobalPos, dragEndGlobalPos); 
+                    }
+
+                    GetViewport().SetInputAsHandled(); // [cite: 696]
                 }
-                GetViewport().SetInputAsHandled(); // [cite: 628]
             }
         }
 
@@ -105,31 +131,21 @@ public partial class MapInputHandler : Node2D
         }
     }
 
-    private void HandleBoxSelection(Vector2 start, Vector2 end)
+    // 【修改】：参数名改为 worldStart 和 worldEnd 避免歧义
+    private void HandleBoxSelection(Vector2 worldStart, Vector2 worldEnd)
     {
-        Vector2 worldStart = GetGlobalMousePosition() - (GetViewport().GetMousePosition() - start); // [cite: 638]
-        Vector2 worldEnd = GetGlobalMousePosition() - (GetViewport().GetMousePosition() - end); // [cite: 639]
+        // 删掉原本那两行错误的 GetGlobalMousePosition() 减法
 
-        float minX = Mathf.Min(worldStart.X, worldEnd.X); // [cite: 639]
-        float maxX = Mathf.Max(worldStart.X, worldEnd.X); // [cite: 639]
-        float minY = Mathf.Min(worldStart.Y, worldEnd.Y); // [cite: 639]
-        float maxY = Mathf.Max(worldStart.Y, worldEnd.Y); // [cite: 640]
-        Rect2 selectionRect = new Rect2(minX, minY, maxX - minX, maxY - minY); // [cite: 640]
-        List<HexCoord> boxedHexes = new List<HexCoord>(); // [cite: 641]
+        // 直接用纯正的世界坐标计算矩形的上下左右边界
+        float minX = Mathf.Min(worldStart.X, worldEnd.X);
+        float maxX = Mathf.Max(worldStart.X, worldEnd.X);
+        float minY = Mathf.Min(worldStart.Y, worldEnd.Y);
+        float maxY = Mathf.Max(worldStart.Y, worldEnd.Y);
+        
+        Rect2 selectionRect = new Rect2(minX, minY, maxX - minX, maxY - minY);
 
-        foreach (var kvp in CoreHost.MapConfig.Tiles) // [cite: 641]
-        {
-            var tile = kvp.Value; // [cite: 641]
-            var offset = MapRenderBridge.CubeToOffset(tile.X, tile.Y, tile.Z); // [cite: 642]
-            Vector2I cellCoords = new Vector2I(offset.offsetX, offset.offsetY); // [cite: 642]
-            Vector2 tileWorldPos = _groundLayer.MapToLocal(cellCoords) + _groundLayer.GlobalPosition; // [cite: 643]
-            
-            if (selectionRect.HasPoint(tileWorldPos)) // [cite: 644]
-            {
-                boxedHexes.Add(kvp.Key); // [cite: 644]
-            }
-        }
-        // 框选数据可以在这里向外派发事件，未来支持多选
+        // 将这个绝对准确的物理矩形抛给 MainGameView
+        OnBoxSelectedRect?.Invoke(selectionRect);
     }
 
     private void UpdateSelectionBox(Vector2 start, Vector2 end)

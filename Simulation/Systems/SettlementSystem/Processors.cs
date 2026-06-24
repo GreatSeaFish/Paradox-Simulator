@@ -101,4 +101,72 @@ namespace ParadoxSimulator.Simulation.Systems.SettlementSystem
             }
         }
     }
+    
+    public class UnitMoveProcessor : ISettlementProcessor
+    {
+        public SettlementFrequency Frequency => SettlementFrequency.Daily;
+
+        public void Execute(WorldSimulationState state)
+        {
+            var mapConfig = CoreHost.MapConfig;
+            var completedTasks = new List<int>();
+
+            foreach (var kvp in state.ActiveUnitMoves)
+            {
+                var task = kvp.Value;
+                task.RemainingDaysForNextTile--;
+
+                // ==========================================
+                // 【核心修改】：走到下一格的进度条满了，执行瞬移！
+                // ==========================================
+                if (task.RemainingDaysForNextTile <= 0)
+                {
+                    HexCoord nextHex = task.Waypoints[0];
+                    int cost = HexPathfinder.GetDynamicTerrainCost(nextHex, mapConfig, state, task.PlayerId);
+                    if (cost < 0) 
+                    {
+                        completedTasks.Add(task.TaskId);
+                        continue;
+                    }
+
+                    // 【核心平移】：直接修改实体的坐标属性！
+                    var unit = state.DeployedUnits[task.UnitId];
+                    HexCoord oldLocation = unit.CurrentLocation;
+                    unit.CurrentLocation = nextHex;
+    
+                    // 通知 UI 这支特指的部队发生了位移
+                    state.NotifyUnitStepped(task.UnitId, oldLocation, nextHex);
+
+                    task.Waypoints.RemoveAt(0);
+
+                    // 检查是否已经到达整条大路径的终点
+                    if (task.Waypoints.Count == 0)
+                    {
+                        completedTasks.Add(task.TaskId);
+                    }
+                    else
+                    {
+                        // 如果还有下一格，无缝初始化下一格的独立读条任务
+                        HexCoord nextNextHex = task.Waypoints[0];
+                        int nextCost = HexPathfinder.GetDynamicTerrainCost(nextNextHex, mapConfig, state, task.PlayerId);
+                        if (nextCost < 0)
+                        {
+                            completedTasks.Add(task.TaskId); // 下下格被堵，直接在当前格停下
+                        }
+                        else
+                        {
+                            task.TotalDaysForNextTile = nextCost * 5;
+                            task.RemainingDaysForNextTile = task.TotalDaysForNextTile;
+                        }
+                    }
+                }
+            }
+
+            // 清理已完成或被迫中断的行军
+            foreach (var taskId in completedTasks)
+            {
+                state.ActiveUnitMoves.Remove(taskId);
+            }
+        }
+    }
 }

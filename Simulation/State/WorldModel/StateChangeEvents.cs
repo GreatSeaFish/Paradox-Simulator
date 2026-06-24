@@ -29,10 +29,13 @@ public partial class WorldSimulationState
     
     // 当造兵任务开始时触发 (用于UI显示造兵倒计时)
     public event Action<HexCoord, int>? OnUnitBuildStarted;
-    
-    // 当部队正式部署时触发 (用于实例化 MilitaryToken)
-    public event Action<HexCoord, int, int>? OnUnitSpawned;
-
+    // --- 在 StateChangeEvents.cs 中修改事件签名 ---
+// 改为直接传递整个 MilitaryUnit 对象
+    public event Action<MilitaryUnit>? OnUnitSpawned; 
+// 改为传递 UnitId 和起止坐标
+    public event Action<int, HexCoord, HexCoord>? OnUnitStepped; 
+// 改为传递 UnitId
+    public event Action<int>? OnUnitRemoved;
     
     /// <summary>
     /// 初始化或重连时，主动向 UI 对齐当前所有的资金状态
@@ -48,6 +51,11 @@ public partial class WorldSimulationState
             OnPlayerRealtimeFundsChanged?.Invoke(playerId, currentFunds);
             OnPlayerMonthlyExpectedChanged?.Invoke(playerId, expectedChange);
         }
+    }
+    // 新增触发方法
+    public void NotifyUnitStepped(int unitId, HexCoord from, HexCoord to)
+    {
+        OnUnitStepped?.Invoke(unitId, from, to);
     }
     
 }

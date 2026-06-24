@@ -21,6 +21,13 @@ namespace ParadoxSimulator.Simulation.Commands
                 
                 CommandType.BuildUnit => new BuildUnitCommand { TargetHex = new HexCoord(dto.TargetHexX, dto.TargetHexY, dto.TargetHexZ) },
                 
+                // 找到 CommandType.UnitMove 分支并替换为：
+                CommandType.UnitMove => new UnitMoveCommand 
+                { 
+                    UnitId = dto.ActionValue, // 【关联修改】：将网络层的 ID 传递给逻辑指令
+                    TargetHex = new HexCoord(dto.TargetHexX, dto.TargetHexY, dto.TargetHexZ) 
+                },
+                
                 _ => null // 无效或空指令
             };
         }

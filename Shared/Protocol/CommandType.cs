@@ -11,7 +11,7 @@
         TimeSpeedControl = 2,
         Colonize = 3,
         BuildUnit = 4,
-        
+        UnitMove = 5, // 新增：部队移动指令
         // 预留区间示例：
         // DiplomacyStart = 1000,
         // TradeStart = 2000,

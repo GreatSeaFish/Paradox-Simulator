@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using ParadoxSimulator.Simulation.State;
+using ParadoxSimulator.Simulation.State.WorldModel;
 
 namespace ParadoxSimulator.Simulation.Systems.WorldMapSystem;
 
@@ -12,7 +14,6 @@ public class PathNode : IComparable<PathNode>
     public int GCost; // 起点到当前点的消耗
     public int HCost; // 启发式消耗（到终点的预估）
     public int FCost => GCost + HCost;
-    
     public PathNode Parent;
     
     // 关键：用于确定性 Tie-breaker。记录插入队列的顺序。
@@ -34,9 +35,9 @@ public class PathNode : IComparable<PathNode>
 }
 
 /// <summary>
-/// 六边形 A* 寻路主系统 (帧同步适用)
+/// 无状态六边形 A* 寻路主系统 (帧同步适用)
 /// </summary>
-public class HexPathfinder
+public static class HexPathfinder
 {
     // 六边形的 6 个相邻方向 (Cube 坐标系)
     private static readonly HexCoord[] Directions = new HexCoord[]
@@ -45,36 +46,21 @@ public class HexPathfinder
         new HexCoord(-1, 1, 0), new HexCoord(-1, 0, 1), new HexCoord(0, -1, 1)
     };
 
-    // 保存全地图的地形类型
-    private Dictionary<HexCoord, string> _mapData = new Dictionary<HexCoord, string>();
-
-    // 插入序号生成器（用于确定性排序）
-    private long _sequenceCounter = 0;
-
     /// <summary>
-    /// 初始化/更新地图数据 (可传入从 map_data.json 解析出来的数据)
+    /// 无状态寻路：每次计算时实时读取静态地形与动态阵营状态
     /// </summary>
-    public void InitMap(IEnumerable<HexTileData> tiles)
-    {
-        _mapData.Clear();
-        foreach (var tile in tiles)
-        {
-            _mapData[new HexCoord(tile.X, tile.Y, tile.Z)] = tile.GroundType;
-        }
-    }
-
-    /// <summary>
-    /// 寻找最短路径
-    /// </summary>
-    /// <param name="start">起点坐标</param>
-    /// <param name="target">终点坐标</param>
-    /// <returns>路径列表（包含起点和终点）。如果无路可走则返回空列表</returns>
-    public List<HexCoord> FindPath(HexCoord start, HexCoord target)
+    public static List<HexCoord> FindPath(
+        HexCoord start, 
+        HexCoord target, 
+        MapConfig mapConfig, 
+        WorldSimulationState state, 
+        int moverPlayerId)
     {
         var path = new List<HexCoord>();
         
-        if (!_mapData.ContainsKey(start) || !_mapData.ContainsKey(target))
-            return path; // 起点或终点不在地图内
+        // 起点或终点不在地图内
+        if (!mapConfig.Tiles.ContainsKey(start) || !mapConfig.Tiles.ContainsKey(target))
+            return path;
 
         if (start == target)
         {
@@ -86,8 +72,8 @@ public class HexPathfinder
         var openSet = new DeterministicMinHeap();
         // 记录访问过的最佳 G 消耗，防止重复扩展
         var bestGCosts = new Dictionary<HexCoord, int>();
-
-        _sequenceCounter = 0; // 重置序号
+        
+        long sequenceCounter = 0; // 局部变量替代全局状态，保证每次寻路隔离独立
 
         var startNode = new PathNode
         {
@@ -95,7 +81,7 @@ public class HexPathfinder
             GCost = 0,
             HCost = HexCoord.Distance(start, target),
             Parent = null,
-            InsertSequence = ++_sequenceCounter
+            InsertSequence = ++sequenceCounter
         };
 
         openSet.Push(startNode);
@@ -106,7 +92,7 @@ public class HexPathfinder
         while (openSet.Count > 0)
         {
             PathNode current = openSet.Pop();
-
+            
             // 如果当前取出的节点消耗已经大于我们记录的该坐标的最佳消耗，则视为废弃节点（Lazy Deletion）
             if (current.GCost > bestGCosts[current.Coord])
                 continue;
@@ -122,32 +108,28 @@ public class HexPathfinder
             for (int i = 0; i < 6; i++)
             {
                 HexCoord neighborCoord = current.Coord + Directions[i];
-
-                // 1. 检查是否存在且可通过
-                if (!_mapData.TryGetValue(neighborCoord, out string terrainType))
-                    continue;
-
-                int moveCost = GetTerrainCost(terrainType);
+                
+                // 核心：调用带动态状态的代价计算
+                int moveCost = GetDynamicTerrainCost(neighborCoord, mapConfig, state, moverPlayerId);
+                
                 if (moveCost < 0) 
                     continue; // 不可通行的地形
 
-                // 2. 计算新的 G 消耗
+                // 计算新的 G 消耗
                 int tentativeGCost = current.GCost + moveCost;
-
-                // 3. 如果发现更优路径，或者从未访问过该邻居
+                
+                // 如果发现更优路径，或者从未访问过该邻居
                 if (!bestGCosts.TryGetValue(neighborCoord, out int existingGCost) || tentativeGCost < existingGCost)
                 {
                     bestGCosts[neighborCoord] = tentativeGCost;
-
                     var neighborNode = new PathNode
                     {
                         Coord = neighborCoord,
                         GCost = tentativeGCost,
                         HCost = HexCoord.Distance(neighborCoord, target), // 曼哈顿距离作为启发值
                         Parent = current,
-                        InsertSequence = ++_sequenceCounter // 保证先进队列的优先级明确
+                        InsertSequence = ++sequenceCounter // 保证先进队列的优先级明确
                     };
-
                     openSet.Push(neighborNode);
                 }
             }
@@ -169,19 +151,40 @@ public class HexPathfinder
     }
 
     /// <summary>
-    /// 获取地形移动消耗（在此配置你的游戏逻辑）
+    /// 动态代价计算中心 (融合地形与政治状态)
+    /// 公开此方法，方便在 Processor 推进时做"落脚点合法性校验"
     /// </summary>
-    private int GetTerrainCost(string terrainType)
+    public static int GetDynamicTerrainCost(HexCoord coord, MapConfig mapConfig, WorldSimulationState state, int moverPlayerId)
     {
-        switch (terrainType)
+        // 1. 静态地形校验
+        if (!mapConfig.Tiles.TryGetValue(coord, out var tileData)) 
+            return -1;
+        
+        // 基础地形代价
+        int cost = tileData.GroundType switch
         {
-            case "Plain": return 1;
-            case "Hills": return 2;
-            // -1 表示不可通行
-            case "Mountains": return -1; 
-            case "Sea": return -1; // 假设陆地单位无法下海，如果造船系统可改为正整数
-            default: return -1;
-        }
+            "Plain" => 1,
+            "Hills" => 2,
+            "Mountains" => -1,
+            "Sea" => -1, // 假设陆地单位无法下海
+            _ => -1
+        };
+        if (cost < 0) return -1;
+
+        // 2. 动态状态校验：是谁的领地？
+        int ownerId = state.GetTileOwner(coord);
+        
+        // 如果是无主之地，或者自己的领地，按原价走
+        if (ownerId == -1 || ownerId == moverPlayerId) 
+            return cost;
+
+        // 3. 【外交阻挡判断预留】
+        // 如果是别人的领地，且封锁了边界（假设未来有类似 DiplomacyStates 字典）
+        // bool isBorderClosed = state.DiplomacyStates.IsClosed(ownerId, moverPlayerId);
+        // if (isBorderClosed) return -1; // 封锁状态下视为无法通行
+
+        // 默认行为：如果没有封锁边界，但在敌国领地行军，移动消耗翻倍
+        return cost * 2; 
     }
 
     /// <summary>
@@ -190,7 +193,7 @@ public class HexPathfinder
     private class DeterministicMinHeap
     {
         private List<PathNode> _elements = new List<PathNode>();
-
+        
         public int Count => _elements.Count;
 
         public void Push(PathNode item)
@@ -202,11 +205,11 @@ public class HexPathfinder
         public PathNode Pop()
         {
             if (_elements.Count == 0) throw new InvalidOperationException("Queue is empty");
-
+            
             PathNode result = _elements[0];
             PathNode last = _elements[_elements.Count - 1];
             _elements.RemoveAt(_elements.Count - 1);
-
+            
             if (_elements.Count > 0)
             {
                 _elements[0] = last;
@@ -225,7 +228,7 @@ public class HexPathfinder
 
                 if (item.CompareTo(parent) >= 0)
                     break;
-
+                
                 _elements[index] = parent;
                 index = parentIndex;
             }
@@ -242,10 +245,10 @@ public class HexPathfinder
                 int leftChildIndex = index * 2 + 1;
                 if (leftChildIndex >= count)
                     break;
-
+                    
                 int minChildIndex = leftChildIndex;
                 int rightChildIndex = leftChildIndex + 1;
-
+                
                 if (rightChildIndex < count && _elements[rightChildIndex].CompareTo(_elements[leftChildIndex]) < 0)
                 {
                     minChildIndex = rightChildIndex;
@@ -253,7 +256,7 @@ public class HexPathfinder
 
                 if (item.CompareTo(_elements[minChildIndex]) <= 0)
                     break;
-
+                    
                 _elements[index] = _elements[minChildIndex];
                 index = minChildIndex;
             }
