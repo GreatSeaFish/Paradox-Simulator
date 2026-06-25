@@ -184,7 +184,7 @@ public static class HexPathfinder
         // if (isBorderClosed) return -1; // 封锁状态下视为无法通行
 
         // 默认行为：如果没有封锁边界，但在敌国领地行军，移动消耗翻倍
-        return cost * 2; 
+        return cost * 5; 
     }
 
     /// <summary>

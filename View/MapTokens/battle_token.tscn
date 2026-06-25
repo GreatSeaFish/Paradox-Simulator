@@ -1,0 +1,91 @@
+[gd_scene format=3 uid="uid://b5tompfqjlowo"]
+
+[ext_resource type="Texture2D" uid="uid://bx1ifatrlyd65" path="res://Assets/Fortify.png" id="1_8pegk"]
+[ext_resource type="Texture2D" uid="uid://c2g6lkosg2iw2" path="res://Assets/Infantry.png" id="2_2m8lj"]
+[ext_resource type="Texture2D" uid="uid://c76fxe6god2hk" path="res://Assets/Strength.png" id="3_2m8lj"]
+
+[node name="BattleToken" type="Node2D" unique_id=1974695286]
+
+[node name="UnitLift" type="Node2D" parent="." unique_id=1432064226]
+position = Vector2(-122, 1)
+
+[node name="Panel" type="Panel" parent="UnitLift" unique_id=209045943]
+offset_left = -93.0
+offset_top = -31.375
+offset_right = 92.0
+offset_bottom = 23.625
+metadata/_edit_use_anchors_ = true
+
+[node name="Emblem" type="Sprite2D" parent="UnitLift" unique_id=1389054584]
+position = Vector2(67.000015, -3.3749993)
+scale = Vector2(0.12792967, 0.12792967)
+texture = ExtResource("1_8pegk")
+
+[node name="Sprite2D" type="Sprite2D" parent="UnitLift" unique_id=1089107875]
+position = Vector2(-60, -3.375)
+scale = Vector2(1.09375, 1.09375)
+texture = ExtResource("2_2m8lj")
+
+[node name="Headcount" type="Label" parent="UnitLift" unique_id=1439306089]
+offset_left = -30.0
+offset_top = -20.375
+offset_right = 27.0
+offset_bottom = 14.625
+theme_override_font_sizes/font_size = 25
+text = "1000"
+metadata/_edit_use_anchors_ = true
+
+[node name="MoraleProgressBar" type="ProgressBar" parent="UnitLift" unique_id=1012155867]
+offset_left = -93.0
+offset_top = 24.625
+offset_right = 92.0
+offset_bottom = 34.625
+value = 50.0
+show_percentage = false
+metadata/_edit_use_anchors_ = true
+
+[node name="UnitRight" type="Node2D" parent="." unique_id=2129593186]
+position = Vector2(124, 3)
+
+[node name="Panel" type="Panel" parent="UnitRight" unique_id=572784329]
+offset_left = -95.0
+offset_top = -32.375
+offset_right = 90.0
+offset_bottom = 22.625
+metadata/_edit_use_anchors_ = true
+
+[node name="Emblem" type="Sprite2D" parent="UnitRight" unique_id=372818232]
+position = Vector2(65.000015, -4.374999)
+scale = Vector2(0.12792967, 0.12792967)
+texture = ExtResource("1_8pegk")
+
+[node name="Sprite2D" type="Sprite2D" parent="UnitRight" unique_id=1822198033]
+position = Vector2(-62, -4.375)
+scale = Vector2(1.09375, 1.09375)
+texture = ExtResource("2_2m8lj")
+
+[node name="Headcount" type="Label" parent="UnitRight" unique_id=1314895383]
+offset_left = -32.0
+offset_top = -21.375
+offset_right = 25.0
+offset_bottom = 13.625
+theme_override_font_sizes/font_size = 25
+text = "1000"
+metadata/_edit_use_anchors_ = true
+
+[node name="MoraleProgressBar" type="ProgressBar" parent="UnitRight" unique_id=696684578]
+offset_left = -95.0
+offset_top = 23.625
+offset_right = 90.0
+offset_bottom = 33.625
+value = 50.0
+show_percentage = false
+metadata/_edit_use_anchors_ = true
+
+[node name="Strength" type="Sprite2D" parent="." unique_id=843554121]
+scale = Vector2(0.8800015, 0.8800015)
+texture = ExtResource("3_2m8lj")
+
+[node name="Strength2" type="Sprite2D" parent="." unique_id=1930482334]
+scale = Vector2(-0.8800015, 0.8800015)
+texture = ExtResource("3_2m8lj")

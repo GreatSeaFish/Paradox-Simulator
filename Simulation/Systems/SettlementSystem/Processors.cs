@@ -102,7 +102,7 @@ namespace ParadoxSimulator.Simulation.Systems.SettlementSystem
         }
     }
     
-    public class UnitMoveProcessor : ISettlementProcessor
+public class UnitMoveProcessor : ISettlementProcessor
     {
         public SettlementFrequency Frequency => SettlementFrequency.Daily;
 
@@ -117,7 +117,7 @@ namespace ParadoxSimulator.Simulation.Systems.SettlementSystem
                 task.RemainingDaysForNextTile--;
 
                 // ==========================================
-                // 【核心修改】：走到下一格的进度条满了，执行瞬移！
+                // 走到下一格的进度条满了，执行瞬移与占领！
                 // ==========================================
                 if (task.RemainingDaysForNextTile <= 0)
                 {
@@ -129,14 +129,42 @@ namespace ParadoxSimulator.Simulation.Systems.SettlementSystem
                         continue;
                     }
 
-                    // 【核心平移】：直接修改实体的坐标属性！
+                    // 【关键点1】：在平移前，先查清楚这块地原本是谁的
+                    int oldOwnerId = state.GetTileOwner(nextHex);
+
+                    // 【核心平移】：直接修改实体的坐标属性
                     var unit = state.DeployedUnits[task.UnitId];
                     HexCoord oldLocation = unit.CurrentLocation;
                     unit.CurrentLocation = nextHex;
-    
+
+                    // ==========================================
+                    // 【新增核心机制】：武力踩踏占领逻辑,如果是 -1 (无主之地)，则只路过，不占领！
+                    // ==========================================
+                    if (oldOwnerId != task.PlayerId && oldOwnerId != -1)
+                    {
+                        // 1. 易帜：强制将地块归属权改为当前部队的玩家
+                        // (这里会自动触发 UI 事件重绘领土颜色)
+                        state.SetTileOwner(nextHex, task.PlayerId);
+
+                        // 2. 重新计算占领者的月度预期收入（由于领土增加，资金产出会变多）
+                        FinanceHelper.RecalculateMonthlyIncome(state, task.PlayerId);
+
+                        // 3. 如果是从别的玩家/敌人手里抢来的，必须削减受害者的收入，防止帧同步经济撕裂
+                        if (oldOwnerId != -1)
+                        {
+                            FinanceHelper.RecalculateMonthlyIncome(state, oldOwnerId);
+                            
+                            // 4. (战术打断) 如果敌人正在这块地上造兵或搞事，直接物理没收！
+                            state.ActiveUnitBuilds.Remove(nextHex);
+                            state.ActiveColonizations.Remove(nextHex);
+                        }
+                        
+                        ClientDebugger.LogHandler?.Invoke($"[战报] 玩家 {task.PlayerId} 的部队攻占了坐标 ({nextHex.X}, {nextHex.Y}, {nextHex.Z})！");
+                    }
+                    // ==========================================
+
                     // 通知 UI 这支特指的部队发生了位移
                     state.NotifyUnitStepped(task.UnitId, oldLocation, nextHex);
-
                     task.Waypoints.RemoveAt(0);
 
                     // 检查是否已经到达整条大路径的终点
@@ -169,4 +197,6 @@ namespace ParadoxSimulator.Simulation.Systems.SettlementSystem
             }
         }
     }
+    
+    
 }
