@@ -3,6 +3,7 @@ using Godot;
 using System.Collections.Generic;
 using System.Linq;
 using FixedMath.NET;
+using ParadoxSimulator.Simulation;
 using ParadoxSimulator.Simulation.State;
 using ParadoxSimulator.Simulation.State.WorldModel;
 using Shared.Math;
@@ -72,7 +73,6 @@ public partial class MainGameView : Node
 
         _inputHandler.OnRightClicked += OnMapRightClicked;
         _inputHandler.OnBoxSelectedRect += HandleUnitBoxSelection;
-
         if (CoreHost.WorldSimulationState != null)
         {
             CoreHost.WorldSimulationState.OnTileOwnershipChanged += OnTileOwnershipChangedSync;
@@ -81,6 +81,10 @@ public partial class MainGameView : Node
             CoreHost.WorldSimulationState.OnUnitStepped += OnUnitSteppedSync;
             CoreHost.WorldSimulationState.OnSpeedChanged += OnSpeedChangedSync;
             CoreHost.WorldSimulationState.OnDateChanged += OnDateChangedSync;
+            
+            CoreHost.WorldSimulationState.OnCombatStarted += OnCombatStartedSync;
+            CoreHost.WorldSimulationState.OnCombatUpdated += OnCombatUpdatedSync;
+            CoreHost.WorldSimulationState.OnCombatEnded += OnCombatEndedSync;
         }
 
         _timeFlowRateTab.TabClicked += OnTimeTabClicked;
@@ -243,7 +247,25 @@ public partial class MainGameView : Node
             var styleBox = new StyleBoxFlat { BgColor = _colorValues[playerInfo.ColorId] };
             tokenNode.GetNode<Panel>("Panel").AddThemeStyleboxOverride("panel", styleBox);
         }
+// 【新增/优化】：刷新血条与士气条
+        var pBarHeadcount = tokenNode.GetNode<ProgressBar>("MoraleProgressBar"); // 原有的血条(Headcount)
+        var pBarMorale = tokenNode.GetNode<ProgressBar>("MoveProgressBar");     // 原有的进度条(MoveProgressBar)，我们复用它显示士气
 
+        // 假设每个栈牌只显示该地块最强的单位属性，或总属性
+        var primaryUnit = unitsHere.First(); 
+        
+        // 刷新血条 (单位归一化处理，假设 1000 人为满血)
+        if (pBarHeadcount != null) pBarHeadcount.Value = (float)totalHeadcount / 1000 * 100;
+
+        // 刷新士气条 (primaryUnit.Morale 为 0-1000)
+        if (pBarMorale != null) 
+        {
+            pBarMorale.Visible = true;
+            pBarMorale.Value = (float)primaryUnit.Morale / 1000 * 100;
+            // 士气低落时变红
+            pBarMorale.Modulate = pBarMorale.Value < 30 ? Colors.Red : Colors.LightBlue;
+        }
+        
         // 6. 刷新高亮状态（只要这个格子上【有任何一支部队被选中了】，栈牌整体就发光）
         bool hasSelected = unitsHere.Any(u => _selectedUnitIds.Contains(u.UnitId));
         tokenNode.Modulate = hasSelected ? new Color(1.5f, 1.5f, 1.5f, 1.0f) : Colors.White;
@@ -372,6 +394,34 @@ public partial class MainGameView : Node
         }
     }
     
+    // ==========================================
+    // =====    战斗可视化事件回调函数      =====
+    // ==========================================
+    
+    private void OnCombatStartedSync(WorldSimulationState.CombatSession combat)
+    {
+        ClientDebugger.LogHandler?.Invoke($"[UI] 战斗开始: {combat.AttackerUnitId} vs {combat.DefenderUnitId}");
+        // 可以播放一个简短的战斗爆发特效，或者在 token 上显示交叉剑的图标
+    }
+
+    private void OnCombatUpdatedSync(WorldSimulationState.CombatSession combat)
+    {
+        // 战斗每天更新一次，直接调用现有的刷新逻辑
+        // 因为 UpdateStackVisual 内部会去读取最新的 Headcount 和 Morale
+        UpdateStackVisual(combat.Location);
+        
+        // 如果面板正开着，刷新一下详细数据
+        if (_unitStackPanel.Visible && _currentWatchingCoord == combat.Location)
+        {
+            ShowUnitStackPanel(_currentWatchingCoord);
+        }
+    }
+
+    private void OnCombatEndedSync(int combatId, int winnerUnitId)
+    {
+        ClientDebugger.LogHandler?.Invoke($"[UI] 战斗结束，胜利者: {winnerUnitId}");
+        // 移除战斗图标，或者清理战斗记录 UI
+    }
     
     // ==========================================
     // =====    原有的 _Process 和辅助逻辑    =====
@@ -488,6 +538,9 @@ public partial class MainGameView : Node
             CoreHost.WorldSimulationState.OnTileOwnershipChanged -= OnTileOwnershipChangedSync;
             CoreHost.WorldSimulationState.OnUnitSpawned -= OnUnitSpawnedSync;
             CoreHost.WorldSimulationState.OnUnitRemoved -= OnUnitRemovedSync;
+            CoreHost.WorldSimulationState.OnCombatStarted -= OnCombatStartedSync;
+            CoreHost.WorldSimulationState.OnCombatUpdated -= OnCombatUpdatedSync;
+            CoreHost.WorldSimulationState.OnCombatEnded -= OnCombatEndedSync;
             if (_inputHandler != null)
             {
                 _inputHandler.OnRightClicked -= OnMapRightClicked;

@@ -36,6 +36,18 @@ public partial class WorldSimulationState
     public event Action<int, HexCoord, HexCoord>? OnUnitStepped; 
 // 改为传递 UnitId
     public event Action<int>? OnUnitRemoved;
+    // ==========================================
+    // =====       【新增】战斗相关事件       =====
+    // ==========================================
+    
+    // 当两支部队相撞，战斗爆发时触发 (可用于在 UI 上播放“拔剑”动画或音效)
+    public event Action<CombatSession>? OnCombatStarted;
+    
+    // 每日战斗结算后触发，通知 UI 更新交战双方的兵力、士气进度条
+    public event Action<CombatSession>? OnCombatUpdated;
+    
+    // 战斗结束时触发，传递 (CombatId, 胜利者的UnitId)。如果平局/同归于尽，胜利者传 -1
+    public event Action<int, int>? OnCombatEnded;
     
     /// <summary>
     /// 初始化或重连时，主动向 UI 对齐当前所有的资金状态
@@ -57,5 +69,22 @@ public partial class WorldSimulationState
     {
         OnUnitStepped?.Invoke(unitId, from, to);
     }
+    // ==========================================
+    // =====       战斗事件触发辅助方法       =====
+    // ==========================================
     
+    public void NotifyCombatStarted(CombatSession combat)
+    {
+        OnCombatStarted?.Invoke(combat);
+    }
+
+    public void NotifyCombatUpdated(CombatSession combat)
+    {
+        OnCombatUpdated?.Invoke(combat);
+    }
+
+    public void NotifyCombatEnded(int combatId, int winnerUnitId)
+    {
+        OnCombatEnded?.Invoke(combatId, winnerUnitId);
+    }
 }

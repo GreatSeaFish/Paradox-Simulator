@@ -40,6 +40,9 @@ public partial class WorldSimulationState
         public int OwnerId { get; set; }
         public int Headcount { get; set; }
         public HexCoord CurrentLocation { get; set; } 
+        
+        // 【新增】：千分制士气值，初始满士气为 1000
+        public int Morale { get; set; } = 1000; 
     }
     
     // 2. 修改行军任务：直接绑定 UnitId，不再散装数据
@@ -53,5 +56,17 @@ public partial class WorldSimulationState
         public int RemainingDaysForNextTile { get; set; }
     }
     
+
     
+    // 【新增】：纯数据结构：记录一场正在进行的战斗
+    public class CombatSession
+    {
+        public int CombatId { get; set; }
+        public int AttackerUnitId { get; set; }
+        public int DefenderUnitId { get; set; }
+        public HexCoord Location { get; set; }
+        
+        // 记录战斗爆发的游戏天数，可以用来计算战损或者超时强行撤退
+        public int StartDay { get; set; } 
+    }
 }

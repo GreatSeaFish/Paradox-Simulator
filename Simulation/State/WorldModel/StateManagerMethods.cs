@@ -143,4 +143,6 @@ public partial class WorldSimulationState
             OnUnitRemoved?.Invoke(unitId);
         }
     }
+    
+
 }

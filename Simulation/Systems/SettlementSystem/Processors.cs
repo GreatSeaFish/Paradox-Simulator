@@ -117,7 +117,7 @@ public class UnitMoveProcessor : ISettlementProcessor
                 task.RemainingDaysForNextTile--;
 
                 // ==========================================
-                // 走到下一格的进度条满了，执行瞬移与占领！
+                // 走到下一格的进度条满了，准备执行瞬移！
                 // ==========================================
                 if (task.RemainingDaysForNextTile <= 0)
                 {
@@ -129,41 +129,67 @@ public class UnitMoveProcessor : ISettlementProcessor
                         continue;
                     }
 
-                    // 【关键点1】：在平移前，先查清楚这块地原本是谁的
-                    int oldOwnerId = state.GetTileOwner(nextHex);
+                    // 【新增核心机制】：行军拦截！侦察目标地块是否有敌军
+                    var enemyUnit = state.DeployedUnits.Values.FirstOrDefault(u => u.CurrentLocation == nextHex && u.OwnerId != task.PlayerId);
+                    
+                    if (enemyUnit != null)
+                    {
+                        // 发现敌军！爆发战斗！
+                        var combat = new WorldSimulationState.CombatSession
+                        {
+                            CombatId = state.NextCombatId++,
+                            AttackerUnitId = task.UnitId,
+                            DefenderUnitId = enemyUnit.UnitId,
+                            Location = nextHex,
+                            StartDay = state.GameDays
+                        };
+                        
+                        // 1. 将战斗加入全局活跃战斗队列
+                        state.ActiveCombats[combat.CombatId] = combat;
+                        
+                        // 2. 触发开战事件 (UI 可以据此播放特效)
+                        state.NotifyCombatStarted(combat);
+                        
+                        // 3. 中断攻击方的行军任务 (打完之前不能接着走)
+                        completedTasks.Add(task.TaskId);
+                        
+                        // 4. (战术打断) 如果防守方刚好也在试图行军，把他的行军也打断，强迫他迎战！
+                        var defenderTask = state.ActiveUnitMoves.Values.FirstOrDefault(m => m.UnitId == enemyUnit.UnitId);
+                        if (defenderTask != null)
+                        {
+                            completedTasks.Add(defenderTask.TaskId);
+                        }
+                        
+                        ClientDebugger.LogHandler?.Invoke($"[战报] 玩家 {task.PlayerId} 的部队(ID:{task.UnitId}) 在坐标 ({nextHex.X},{nextHex.Y},{nextHex.Z}) 遭遇敌军(ID:{enemyUnit.UnitId})，战斗爆发！");
+                        
+                        // 拦截成功，跳过后续的平移和占领逻辑！
+                        continue; 
+                    }
 
+                    // ==========================================
+                    // 下面是原本正常的平移与占领逻辑 (如果没有遇到敌人)
+                    // ==========================================
+                    int oldOwnerId = state.GetTileOwner(nextHex);
+                    
                     // 【核心平移】：直接修改实体的坐标属性
                     var unit = state.DeployedUnits[task.UnitId];
                     HexCoord oldLocation = unit.CurrentLocation;
                     unit.CurrentLocation = nextHex;
 
-                    // ==========================================
-                    // 【新增核心机制】：武力踩踏占领逻辑,如果是 -1 (无主之地)，则只路过，不占领！
-                    // ==========================================
+                    // 武力踩踏占领逻辑
                     if (oldOwnerId != task.PlayerId && oldOwnerId != -1)
                     {
-                        // 1. 易帜：强制将地块归属权改为当前部队的玩家
-                        // (这里会自动触发 UI 事件重绘领土颜色)
                         state.SetTileOwner(nextHex, task.PlayerId);
-
-                        // 2. 重新计算占领者的月度预期收入（由于领土增加，资金产出会变多）
                         FinanceHelper.RecalculateMonthlyIncome(state, task.PlayerId);
-
-                        // 3. 如果是从别的玩家/敌人手里抢来的，必须削减受害者的收入，防止帧同步经济撕裂
+                        
                         if (oldOwnerId != -1)
                         {
                             FinanceHelper.RecalculateMonthlyIncome(state, oldOwnerId);
-                            
-                            // 4. (战术打断) 如果敌人正在这块地上造兵或搞事，直接物理没收！
                             state.ActiveUnitBuilds.Remove(nextHex);
                             state.ActiveColonizations.Remove(nextHex);
                         }
-                        
-                        ClientDebugger.LogHandler?.Invoke($"[战报] 玩家 {task.PlayerId} 的部队攻占了坐标 ({nextHex.X}, {nextHex.Y}, {nextHex.Z})！");
                     }
-                    // ==========================================
 
-                    // 通知 UI 这支特指的部队发生了位移
                     state.NotifyUnitStepped(task.UnitId, oldLocation, nextHex);
                     task.Waypoints.RemoveAt(0);
 
@@ -174,7 +200,6 @@ public class UnitMoveProcessor : ISettlementProcessor
                     }
                     else
                     {
-                        // 如果还有下一格，无缝初始化下一格的独立读条任务
                         HexCoord nextNextHex = task.Waypoints[0];
                         int nextCost = HexPathfinder.GetDynamicTerrainCost(nextNextHex, mapConfig, state, task.PlayerId);
                         if (nextCost < 0)
@@ -196,7 +221,115 @@ public class UnitMoveProcessor : ISettlementProcessor
                 state.ActiveUnitMoves.Remove(taskId);
             }
         }
+    } 
+    /// <summary>
+    /// 每日战斗心跳处理器
+    /// </summary>
+    public class CombatProcessor : ISettlementProcessor
+    {
+        public SettlementFrequency Frequency => SettlementFrequency.Daily;
+
+        public void Execute(WorldSimulationState state)
+        {
+            var completedCombats = new List<int>();
+
+            foreach (var kvp in state.ActiveCombats)
+            {
+                var combat = kvp.Value;
+                
+                // 1. 获取参战双方实体
+                bool hasAttacker = state.DeployedUnits.TryGetValue(combat.AttackerUnitId, out var attacker);
+                bool hasDefender = state.DeployedUnits.TryGetValue(combat.DefenderUnitId, out var defender);
+
+                // 安全防御：如果任何一方因为其他原因（如被代码强行移除）消失了，直接中止这场战斗
+                if (!hasAttacker || !hasDefender)
+                {
+                    completedCombats.Add(combat.CombatId);
+                    int winnerId = hasAttacker ? attacker.UnitId : (hasDefender ? defender.UnitId : -1);
+                    state.NotifyCombatEnded(combat.CombatId, winnerId);
+                    continue;
+                }
+
+                // 2. 【核心确定性】：初始化纯整数随机数发生器
+                // 只要天数和战斗ID一致，任何电脑在这一帧算出来的骰子绝对一模一样！
+                uint combatSeed = (uint)(state.GameDays + combat.CombatId);
+                var dice = new Shared.Math.DeterministicRandom(combatSeed);
+
+                // 3. 掷骰子 (0-9)
+                int attackerRoll = dice.Range(0, 9);
+                int defenderRoll = dice.Range(0, 9);
+
+                // 4. 获取地形修正 (地形越崎岖，防守方越有利)
+                // 平原 Cost=1，丘陵 Cost=2。我们将其减 1 作为攻击方的掷骰惩罚。
+                int terrainCost = HexPathfinder.GetDynamicTerrainCost(combat.Location, CoreHost.MapConfig, state, defender.OwnerId);
+                int terrainPenalty = System.Math.Max(0, terrainCost - 1); 
+
+                // 5. 计算最终战术乘数 (不可小于0)
+                int mA = System.Math.Max(0, attackerRoll - terrainPenalty);
+                int mD = System.Math.Max(0, defenderRoll);
+
+                // 6. 纯整数战损计算 (公式: 对方兵力 * 我的乘数 / 100)
+                int attackerCasualties = (defender.Headcount * mD) / 100;
+                int defenderCasualties = (attacker.Headcount * mA) / 100;
+
+                // 士气打击 (规定：每损失 1 个士兵，掉 0.5 士气。纯整数表达即乘以 50 再除以 100)
+                int attackerMoraleDmg = (attackerCasualties * 50) / 100;
+                int defenderMoraleDmg = (defenderCasualties * 50) / 100;
+
+                // 7. 施加伤害，严防属性越界成负数
+                attacker.Headcount = System.Math.Max(0, attacker.Headcount - attackerCasualties);
+                defender.Headcount = System.Math.Max(0, defender.Headcount - defenderCasualties);
+                
+                attacker.Morale = System.Math.Max(0, attacker.Morale - attackerMoraleDmg);
+                defender.Morale = System.Math.Max(0, defender.Morale - defenderMoraleDmg);
+
+                // 抛出更新事件，通知 UI 的血条和士气条闪烁扣减
+                state.NotifyCombatUpdated(combat);
+
+                // 8. 判定胜负 (兵力死光或士气归零即为战败)
+                bool attackerBroken = attacker.Headcount <= 0 || attacker.Morale <= 0;
+                bool defenderBroken = defender.Headcount <= 0 || defender.Morale <= 0;
+
+                if (attackerBroken || defenderBroken)
+                {
+                    completedCombats.Add(combat.CombatId);
+                    
+                    int winnerUnitId = -1;
+                    
+                    if (attackerBroken && defenderBroken) 
+                    {
+                        // 同归于尽，直接双双抹杀
+                        state.RemoveUnit(attacker.UnitId);
+                        state.RemoveUnit(defender.UnitId);
+                    }
+                    else if (attackerBroken)
+                    {
+                        // 攻击方战败，抹杀攻击方，防守方惨胜
+                        winnerUnitId = defender.UnitId;
+                        state.RemoveUnit(attacker.UnitId);
+                    }
+                    else
+                    {
+                        // 防守方战败，抹杀防守方
+                        // 策略妥协：原本攻击方的移动任务已被打断。为了避免寻路状态机的复杂回滚，
+                        // 胜利的攻击方会停留在原本的发起地块。玩家需要手动再次下达移动指令进行占领。
+                        winnerUnitId = attacker.UnitId;
+                        state.RemoveUnit(defender.UnitId);
+                    }
+
+                    state.NotifyCombatEnded(combat.CombatId, winnerUnitId);
+                    ClientDebugger.LogHandler?.Invoke($"[战报] 战斗 {combat.CombatId} 结束！胜利者 ID: {winnerUnitId}");
+                }
+            }
+
+            // 9. 每日清道夫：把打完的战斗从字典里安全移除
+            foreach (var combatId in completedCombats)
+            {
+                state.ActiveCombats.Remove(combatId);
+            }
+        }
     }
-    
-    
+
+
 }
+

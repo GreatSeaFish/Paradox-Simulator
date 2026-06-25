@@ -39,6 +39,11 @@ public partial class WorldSimulationState
     public Dictionary<int, UnitMoveTask> ActiveUnitMoves { get; } = new Dictionary<int, UnitMoveTask>();
     public int NextMoveTaskId { get; set; } = 1;
     
+    // 【新增】：局内全网所有正在进行的战斗 (Key: 战斗唯一标识ID)
+    public Dictionary<int, CombatSession> ActiveCombats { get; } = new Dictionary<int, CombatSession>();
+    
+    // 【新增】：战斗ID自增器，确保每场战斗都有唯一且确定性的ID
+    public int NextCombatId { get; set; } = 1;
     // ================== 时钟 ==================
     
     // 当前档位（0=暂停, 1~5=正常速度）
