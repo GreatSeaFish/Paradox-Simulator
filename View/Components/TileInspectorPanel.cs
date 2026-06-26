@@ -65,7 +65,7 @@ public partial class TileInspectorPanel : PanelContainer
                 }
                 else
                 {
-                    _actionButton.Text = "招募部队 (30天 | -10G)";
+                    _actionButton.Text = "招募部队 (30天|-10G，-4G/月)";
                     bool canAfford = state.PlayerFunds.TryGetValue(myId, out int funds) && funds >= 10;
                     _actionButton.Disabled = !canAfford; // 没钱就不让点
                     if (!canAfford) _actionButton.Text += " [资金不足]";
@@ -95,7 +95,7 @@ public partial class TileInspectorPanel : PanelContainer
             _actionButton.Visible = true;
             if (isAdjacent)
             {
-                _actionButton.Text = "建立殖民地 (100天 | -1G/月)";
+                _actionButton.Text = "建立殖民地 (30天 | -2G/月)";
                 _actionButton.Disabled = false;
                 _currentActionMode = ActionMode.Colonize; // 【标记为殖民模式】
             }

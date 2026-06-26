@@ -43,7 +43,7 @@ namespace ParadoxSimulator.Simulation.Commands
             // 6. 动态更新玩家的月度预期账单（新增 1 块钱的维护费赤字）
             if (state.PlayerMonthlyFundsChange.TryGetValue(playerId, out int currentChange))
             {
-                state.SetMonthlyFundsChange(playerId, currentChange - 1);
+                state.SetMonthlyFundsChange(playerId, currentChange - 2);
             }
         }
     }

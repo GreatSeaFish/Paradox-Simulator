@@ -313,6 +313,7 @@ public class UnitMoveProcessor : ISettlementProcessor
                     int totalLoserHeadcount = loserUnits.Sum(u => u.Headcount);
 
                     // 9. 执行撤退 vs 溃灭 断言
+                    // 9. 执行撤退 vs 溃灭 断言
                     if (totalLoserHeadcount < (totalWinnerHeadcount / 2))
                     {
                         // 兵力悬殊且士气崩溃，无情抹杀全歼
@@ -322,17 +323,18 @@ public class UnitMoveProcessor : ISettlementProcessor
                     else
                     {
                         // 兵力尚存但士气崩溃，执行战略撤退寻路
-                        HexCoord retreatDestination = FindSafeRetreatTile(hex, loserPlayerId, state);
+                        // 【修改点】：使用可空类型接收
+                        HexCoord? retreatDestination = FindSafeRetreatTile(hex, loserPlayerId, state);
 
-                        if (retreatDestination == default(HexCoord))
+                        // 【修改点】：使用 .HasValue 判断，完美避开 default(HexCoord) 的 (0,0,0) 坐标陷阱
+                        if (!retreatDestination.HasValue)
                         {
                             ClientDebugger.LogHandler?.Invoke($"[战报] 阵营 {loserPlayerId} 无路可逃，被迫就地解散全灭！");
                             foreach (var u in loserUnits) state.RemoveUnit(u.UnitId);
                         }
                         else
                         {
-                            ClientDebugger.LogHandler?.Invoke($"[战略撤退] 阵营 {loserPlayerId} 残兵败退至坐标 ({retreatDestination.X},{retreatDestination.Y},{retreatDestination.Z})。");
-                            
+                            ClientDebugger.LogHandler?.Invoke($"[战略撤退] 阵营 {loserPlayerId} 残兵败退至坐标 ({retreatDestination.Value.X},{retreatDestination.Value.Y},{retreatDestination.Value.Z})。");
                             foreach (var u in loserUnits)
                             {
                                 HexCoord oldLoc = u.CurrentLocation;
@@ -340,11 +342,11 @@ public class UnitMoveProcessor : ISettlementProcessor
                                 var oldTask = state.ActiveUnitMoves.Values.FirstOrDefault(m => m.UnitId == u.UnitId);
                                 if (oldTask != null) state.ActiveUnitMoves.Remove(oldTask.TaskId);
 
-                                // 瞬间物理位移到撤退目的地
-                                u.CurrentLocation = retreatDestination;
+                                // 瞬间物理位移到撤退目的地 (提取 .Value)
+                                u.CurrentLocation = retreatDestination.Value;
                                 u.Morale = 100; // 撤退成功，给10%保底士气
                                 
-                                state.NotifyUnitStepped(u.UnitId, oldLoc, retreatDestination);
+                                state.NotifyUnitStepped(u.UnitId, oldLoc, retreatDestination.Value);
                             }
                         }
                     }
@@ -406,11 +408,16 @@ public class UnitMoveProcessor : ISettlementProcessor
         /// <summary>
         /// 撤退智能路由解算器
         /// </summary>
-        private HexCoord FindSafeRetreatTile(HexCoord combatLoc, int loserPlayerId, WorldSimulationState state)
+        private HexCoord? FindSafeRetreatTile(HexCoord combatLoc, int loserPlayerId, WorldSimulationState state)
         {
             // 1. 搜集全图所有属于该败军玩家的有效领土
-            var myTerritories = state.TileOwners.Where(kvp => kvp.Value == loserPlayerId).Select(kvp => kvp.Key).ToList();
-            if (myTerritories.Count == 0) return default;
+            // 【核心修复1】：强制排除当前交战坐标，禁止原地撤退
+            var myTerritories = state.TileOwners
+                .Where(kvp => kvp.Value == loserPlayerId && kvp.Key != combatLoc) 
+                .Select(kvp => kvp.Key)
+                .ToList();
+        
+            if (myTerritories.Count == 0) return null; // 改为返回 null
 
             var mapConfig = CoreHost.MapConfig;
             var viableTiles = new List<HexCoord>();
@@ -425,7 +432,7 @@ public class UnitMoveProcessor : ISettlementProcessor
                 }
             }
 
-            if (viableTiles.Count == 0) return default;
+            if (viableTiles.Count == 0) return null; // 改为返回 null
 
             // 3. 危险系数打分排序（优先找三环内完全没有敌人的领土）
             var bestTiles = new List<HexCoord>();
@@ -433,24 +440,25 @@ public class UnitMoveProcessor : ISettlementProcessor
 
             foreach (var tile in viableTiles)
             {
-                // 扫描该地块周围 3 环内所有的格子
                 var threeRingHexes = HexUtility.GetHexesInRange(tile, 3);
-                
-                // 检查这群格子里是否混进了敌人的驻军
                 bool hasEnemyNearby = state.DeployedUnits.Values.Any(u => u.OwnerId != loserPlayerId && threeRingHexes.Contains(u.CurrentLocation));
-
                 if (!hasEnemyNearby) bestTiles.Add(tile);
                 else backupTiles.Add(tile);
             }
 
-            // 4. 给出评估答案：有完美的选完美（离战场最近的完美领土），没完美的选普通连通领土
+            // 4. 给出评估答案
             if (bestTiles.Count > 0)
             {
+                // 有完美的连通领土，撤退到离战场最近的安全点
                 return bestTiles.OrderBy(t => HexCoord.Distance(combatLoc, t)).First();
             }
-            
+    
+            // 【核心修复2】没有完美点时，启用备选点（有敌人的领土）。
+            // 因为前面已经排除了原地，这里按距离排序会选出离战场最近的一块领土（保证只退一两步，不会满地图飞），
+            // 满足“尽可能地撤退（只要有路走就必定退开）”的需求。
             return backupTiles.OrderBy(t => HexCoord.Distance(combatLoc, t)).First();
         }
+        
     }
 
 
