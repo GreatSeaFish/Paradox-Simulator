@@ -27,7 +27,11 @@ namespace ParadoxSimulator.Simulation.Commands
                     UnitId = dto.ActionValue, // 【关联修改】：将网络层的 ID 传递给逻辑指令
                     TargetHex = new HexCoord(dto.TargetHexX, dto.TargetHexY, dto.TargetHexZ) 
                 },
-                
+                // 在 switch 模式匹配中添加 MergeUnits 分支： [cite: 150]
+                CommandType.MergeUnits => new MergeUnitsCommand 
+                { 
+                    TargetHex = new HexCoord(dto.TargetHexX, dto.TargetHexY, dto.TargetHexZ) 
+                },
                 _ => null // 无效或空指令
             };
         }

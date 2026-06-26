@@ -24,6 +24,7 @@ namespace ParadoxSimulator.Simulation.Systems.SettlementSystem
             RegisterProcessor(new UnitMoveProcessor());
             // 【新增】：挂载战斗处理器，保证它每天都会随日历一起跑
             RegisterProcessor(new CombatProcessor());
+            RegisterProcessor(new OccupationProcessor()); // 【新增】注册占领处理器
         }
 
         /// <summary>

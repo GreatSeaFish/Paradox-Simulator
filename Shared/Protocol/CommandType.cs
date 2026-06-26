@@ -12,6 +12,7 @@
         Colonize = 3,
         BuildUnit = 4,
         UnitMove = 5, // 新增：部队移动指令
+        MergeUnits = 6 // 【新增】同一地块部队合并指令
         // 预留区间示例：
         // DiplomacyStart = 1000,
         // TradeStart = 2000,

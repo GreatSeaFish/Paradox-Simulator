@@ -58,15 +58,19 @@ public partial class WorldSimulationState
     
 
     
-    // 【新增】：纯数据结构：记录一场正在进行的战斗
+// 【修改】：记录一场正在进行的聚合战斗
     public class CombatSession
     {
         public int CombatId { get; set; }
-        public int AttackerUnitId { get; set; }
-        public int DefenderUnitId { get; set; }
-        public HexCoord Location { get; set; }
-        
-        // 记录战斗爆发的游戏天数，可以用来计算战损或者超时强行撤退
+        public HexCoord Location { get; set; } // 核心：以地块坐标为战场纽带
         public int StartDay { get; set; } 
+    }
+    /// <summary>
+    /// 纯数据结构：记录军队占领敌方领土的进度
+    /// </summary>
+    public class OccupationTask
+    {
+        public int OccupyingPlayerId { get; set; }
+        public int AccumulatedDays { get; set; } = 0;
     }
 }

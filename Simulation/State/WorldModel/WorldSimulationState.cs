@@ -35,6 +35,8 @@ public partial class WorldSimulationState
     public Dictionary<int, MilitaryUnit> DeployedUnits { get; } = new Dictionary<int, MilitaryUnit>();
     public int NextUnitId { get; set; } = 1;
     
+    // 局内全网所有正在进行的领土占领任务 (Key: 目标地块坐标, Value: 占领进度)
+    public Dictionary<HexCoord, OccupationTask> ActiveOccupations { get; } = new Dictionary<HexCoord, OccupationTask>();
     // 局内全网所有正在行军的部队 (Key: 任务唯一标识ID, Value: 移动任务详情)
     public Dictionary<int, UnitMoveTask> ActiveUnitMoves { get; } = new Dictionary<int, UnitMoveTask>();
     public int NextMoveTaskId { get; set; } = 1;

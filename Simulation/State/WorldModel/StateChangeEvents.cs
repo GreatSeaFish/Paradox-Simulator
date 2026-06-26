@@ -47,7 +47,8 @@ public partial class WorldSimulationState
     public event Action<CombatSession>? OnCombatUpdated;
     
     // 战斗结束时触发，传递 (CombatId, 胜利者的UnitId)。如果平局/同归于尽，胜利者传 -1
-    public event Action<int, int>? OnCombatEnded;
+// --- 修改事件签名：加入了 HexCoord 参数 ---
+    public event Action<int, HexCoord, int>? OnCombatEnded;
     
     /// <summary>
     /// 初始化或重连时，主动向 UI 对齐当前所有的资金状态
@@ -83,8 +84,8 @@ public partial class WorldSimulationState
         OnCombatUpdated?.Invoke(combat);
     }
 
-    public void NotifyCombatEnded(int combatId, int winnerUnitId)
+    public void NotifyCombatEnded(int combatId, HexCoord location, int winnerUnitId)
     {
-        OnCombatEnded?.Invoke(combatId, winnerUnitId);
+        OnCombatEnded?.Invoke(combatId, location, winnerUnitId);
     }
 }

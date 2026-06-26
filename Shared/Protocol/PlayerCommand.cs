@@ -55,6 +55,11 @@ public class PlayerCommand : INetSerializable
                 writer.Put(ActionValue); // 【核心】：借用 ActionValue 写入唯一的部队 ID
                 writer.Put(TargetHexX); writer.Put(TargetHexY); writer.Put(TargetHexZ);
                 break;
+            case CommandType.MergeUnits: // 【新增】路由进相同的坐标写入逻辑 [cite: 119]
+                writer.Put(TargetHexX);
+                writer.Put(TargetHexY);
+                writer.Put(TargetHexZ);
+                break;
         }
     }
 
@@ -88,6 +93,11 @@ public class PlayerCommand : INetSerializable
             case CommandType.UnitMove:
                 ActionValue = reader.GetInt(); // 【核心】：读取部队 ID
                 TargetHexX = reader.GetShort(); TargetHexY = reader.GetShort(); TargetHexZ = reader.GetShort();
+                break;
+            case CommandType.MergeUnits: // 【新增】路由进相同的坐标读取逻辑 [cite: 127]
+                TargetHexX = reader.GetShort();
+                TargetHexY = reader.GetShort();
+                TargetHexZ = reader.GetShort();
                 break;
         }
     }

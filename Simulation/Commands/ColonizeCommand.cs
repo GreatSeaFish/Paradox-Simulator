@@ -37,7 +37,7 @@ namespace ParadoxSimulator.Simulation.Commands
             state.ActiveColonizations[TargetHex] = new WorldSimulationState.ColonizationTask
             {
                 PlayerId = playerId,
-                RemainingDays = 100 // 设定初始需要 100 天
+                RemainingDays = 30 // 设定初始需要 100 天
             };
 
             // 6. 动态更新玩家的月度预期账单（新增 1 块钱的维护费赤字）

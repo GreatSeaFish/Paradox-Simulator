@@ -16,7 +16,12 @@ namespace ParadoxSimulator.Simulation.Systems.SettlementSystem
             
             // 维护费支出：每个活跃的殖民地任务每月扣除 1 资金
             var activeColonizationsCount = state.ActiveColonizations.Count(kvp => kvp.Value.PlayerId == playerId);
-            expectedIncome -= (activeColonizationsCount * 1);
+            expectedIncome -= (activeColonizationsCount * 2);
+            // ==========================================
+            // 【新增】：军队维护费机制，每个存活的编队每月扣除 4G
+            // ==========================================
+            var aliveUnitsCount = state.DeployedUnits.Values.Count(u => u.OwnerId == playerId);
+            expectedIncome -= (aliveUnitsCount * 4);
             
             state.SetMonthlyFundsChange(playerId, expectedIncome);
         }

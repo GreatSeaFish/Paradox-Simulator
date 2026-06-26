@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using FixedMath.NET;
 using ParadoxSimulator.Simulation;
-using ParadoxSimulator.Simulation.State;
 using ParadoxSimulator.Simulation.State.WorldModel;
 using Shared.Math;
 using ParadoxSimulator.Simulation.Systems.WorldMapSystem;
@@ -18,6 +17,7 @@ public partial class MainGameView : Node
     private TileInspectorPanel _inspectorPanel = null!;
     private readonly Dictionary<HexCoord, Label> _colonizationLabels = new();
     private readonly Dictionary<HexCoord, Label> _unitBuildLabels = new();
+    private readonly Dictionary<HexCoord, ProgressBar> _occupationProgressBars = new(); // 【新增】占领进度条缓存
 
     // ===== 2. 基础渲染节点引用 =====
     private TileMapLayer _groundLayer = null!;
@@ -35,6 +35,7 @@ public partial class MainGameView : Node
 
     // ===== 4. 【重构】聚合部队栈渲染系统 =====
     private PackedScene _militaryTokenScene = GD.Load<PackedScene>("res://View/MapTokens/military_token.tscn");
+    private PackedScene _battleTokenScene = GD.Load<PackedScene>("res://View/MapTokens/battle_token.tscn"); // 【新增】
     private Node2D _unitsRoot = null!;
     
     // 【核心改造】：不再 1对1 记录部队节点，而是 1个坐标对应1个栈牌
@@ -75,6 +76,8 @@ public partial class MainGameView : Node
         _inputHandler.OnBoxSelectedRect += HandleUnitBoxSelection;
         if (CoreHost.WorldSimulationState != null)
         {
+            // 在 _Ready() 的 if (CoreHost.WorldSimulationState != null) 块中添加：
+            CoreHost.WorldSimulationState.OnMonthlySettlementRequired += OnMonthlySettlementRequiredSync;
             CoreHost.WorldSimulationState.OnTileOwnershipChanged += OnTileOwnershipChangedSync;
             CoreHost.WorldSimulationState.OnUnitSpawned += OnUnitSpawnedSync;
             CoreHost.WorldSimulationState.OnUnitRemoved += OnUnitRemovedSync;
@@ -101,27 +104,47 @@ public partial class MainGameView : Node
     // ==========================================
     // =====    动态 UI：部队列表弹窗构建    =====
     // ==========================================
+    // 声明一个类成员变量来持有这个合并按钮的引用，方便后续动态控制它
+    private Button _stackMergeBtn = null!; // 【新增类成员变量，请写在类顶部】
+
     private void BuildUnitStackPanel()
     {
         _unitStackPanel = new PanelContainer {
             Visible = false,
-            Position = new Vector2(20, 80), // 放在左上角，避开资金栏
+            Position = new Vector2(20, 80),
             CustomMinimumSize = new Vector2(260, 300)
         };
-        
-        // 挂个深色半透明背景
+    
         _unitStackPanel.AddThemeStyleboxOverride("panel", new StyleBoxFlat { BgColor = new Color(0.1f, 0.1f, 0.1f, 0.8f) });
-
         var mainVBox = new VBoxContainer();
-        
-        var titleLabel = new Label { Text = "驻军列表", HorizontalAlignment = HorizontalAlignment.Center };
-        mainVBox.AddChild(titleLabel);
-        
+    
+        // --- 【修改部分】将原本顶部的单行 Label 改为水平容器，把“合并”按钮并排塞进去 ---
+        var topHBox = new HBoxContainer();
+        var titleLabel = new Label { Text = "驻军列表 ", SizeFlagsHorizontal = Control.SizeFlags.ExpandFill };
+    
+        _stackMergeBtn = new Button { Text = "合并", TooltipText = "将当前地块的所有我方残兵整合成满编" };
+        // 绑定点击事件：直接对当前正在查看的六边形坐标发送合兵网络指令
+        _stackMergeBtn.Pressed += () => {
+            CoreHost.CommandSender.EnqueueCommand(new PlayerCommand
+            {
+                InputType = CommandType.MergeUnits,
+                TargetHexX = (short)_currentWatchingCoord.X,
+                TargetHexY = (short)_currentWatchingCoord.Y,
+                TargetHexZ = (short)_currentWatchingCoord.Z
+            });
+            _unitStackPanel.Visible = false; // 发送后先关闭面板，静待网络逻辑帧广播回来自动刷新
+        };
+    
+        topHBox.AddChild(titleLabel);
+        topHBox.AddChild(_stackMergeBtn);
+        mainVBox.AddChild(topHBox);
+        // -----------------------------------------------------------------
+
         var scroll = new ScrollContainer { CustomMinimumSize = new Vector2(250, 300) };
         _unitStackList = new VBoxContainer();
         scroll.AddChild(_unitStackList);
         mainVBox.AddChild(scroll);
-        
+
         var closeBtn = new Button { Text = "关闭" };
         closeBtn.Pressed += () => _unitStackPanel.Visible = false;
         mainVBox.AddChild(closeBtn);
@@ -134,18 +157,34 @@ public partial class MainGameView : Node
     {
         _currentWatchingCoord = coord;
         _unitStackPanel.Visible = true;
-        
+    
         // 清理旧列表
         foreach (Node child in _unitStackList.GetChildren()) child.QueueFree();
-
+    
         var state = CoreHost.WorldSimulationState;
         int myId = CoreHost.LocalContext.MyPlayerId;
         var unitsHere = state.DeployedUnits.Values.Where(u => u.CurrentLocation == coord).ToList();
-
+    
         if (unitsHere.Count == 0)
         {
             _unitStackPanel.Visible = false;
             return;
+        }
+
+        // --- 【新增控制逻辑】根据当前地块我方可合并的单位数量，动态亮起/灰化合并按钮 ---
+        var myUnitsHere = unitsHere.Where(u => u.OwnerId == myId && u.Headcount > 0).ToList();
+    
+        // 只有我方单位大于等于2个，且当前没有发生战斗时，才允许在列表中点击合并
+        bool isCombatActive = state.ActiveCombats.Values.Any(c => c.Location == coord);
+        if (myUnitsHere.Count >= 2 && !isCombatActive)
+        {
+            _stackMergeBtn.Disabled = false;
+            _stackMergeBtn.Modulate = Colors.LimeGreen; // 亮绿色提示可用
+        }
+        else
+        {
+            _stackMergeBtn.Disabled = true;
+            _stackMergeBtn.Modulate = Colors.Gray;      // 灰化不可用
         }
 
         foreach (var unit in unitsHere)
@@ -179,97 +218,156 @@ public partial class MainGameView : Node
 // ==========================================
     // ===== 核心渲染：统一刷新某一地块的栈牌 =====
     // ==========================================
-    private void UpdateStackVisual(HexCoord coord)
+/// <summary>
+/// 核心渲染：统一刷新某一地块的栈牌（支持常规集团军展示与聚合战场 BattleToken 动态切换）
+/// </summary>
+private void UpdateStackVisual(HexCoord coord)
+{
+    var state = CoreHost.WorldSimulationState;
+    var unitsHere = state.DeployedUnits.Values.Where(u => u.CurrentLocation == coord).ToList();
+
+    // 1. 如果该地块已经没有部队了，销毁栈牌并移出追踪字典
+    if (unitsHere.Count == 0)
     {
-        var state = CoreHost.WorldSimulationState;
-        var unitsHere = state.DeployedUnits.Values.Where(u => u.CurrentLocation == coord).ToList();
-
-        // 1. 如果该地块已经没有部队了，销毁栈牌
-        if (unitsHere.Count == 0)
+        if (_stackNodes.TryGetValue(coord, out var node))
         {
-            if (_stackNodes.TryGetValue(coord, out var node))
-            {
-                if (IsInstanceValid(node)) node.QueueFree();
-                _stackNodes.Remove(coord);
-            }
-            return;
+            if (IsInstanceValid(node)) node.QueueFree();
+            _stackNodes.Remove(coord);
         }
+        return;
+    }
 
-        // 2. 如果还没有该地块的栈牌，实例化一个
-        if (!_stackNodes.TryGetValue(coord, out var tokenNode) || !IsInstanceValid(tokenNode))
+    // 检查当前地块是否存在正在进行的聚合战场
+    bool isCombatActive = state.ActiveCombats.Values.Any(c => c.Location == coord);
+
+    // 2. 检查是否需要替换 Token 类型 (和平 -> 战斗，或 战斗 -> 和平)
+    bool needsNewToken = true;
+    if (_stackNodes.TryGetValue(coord, out var existingToken) && IsInstanceValid(existingToken))
+    {
+        // 通过节点名称或挂载节点特征判断当前实例的类型是否与战场状态匹配
+        bool isExistingTokenBattle = existingToken.Name.ToString().Contains("BattleToken");
+        if (isExistingTokenBattle == isCombatActive)
         {
-            tokenNode = _militaryTokenScene.Instantiate<Node2D>();
-            _unitsRoot.AddChild(tokenNode);
-            _stackNodes[coord] = tokenNode;
+            needsNewToken = false; // 类型完全匹配，不需要重新实例化，只需更新数据
+        }
+        else
+        {
+            // 类型不匹配（例如战斗刚刚结束或刚刚爆发），直接销毁旧的，准备下方重建
+            existingToken.QueueFree();
+            _stackNodes.Remove(coord);
+        }
+    }
 
-            var panel = tokenNode.GetNode<Panel>("Panel");
+    // 3. 实例化对应的 Token 预制体
+    if (needsNewToken)
+    {
+        Node2D tokenNode = isCombatActive ? _battleTokenScene.Instantiate<Node2D>() : _militaryTokenScene.Instantiate<Node2D>();
+        _unitsRoot.AddChild(tokenNode);
+        _stackNodes[coord] = tokenNode;
+
+        // 动态绑定点击事件 (兼容两种 Token 不同的 UI 按钮面板结构)
+        var panels = isCombatActive ? 
+            new[] { tokenNode.GetNode<Panel>("UnitLift/Panel"), tokenNode.GetNode<Panel>("UnitRight/Panel") } : 
+            new[] { tokenNode.GetNode<Panel>("Panel") };
+
+        foreach (var panel in panels)
+        {
             if (panel != null)
             {
+                // 【新增】：强制将面板的鼠标过滤模式设为 Pass 
+                // 这样左键依然能响应 GuiInput，但右键会安全地漏给下层的地图和 MapInputHandler
+                panel.MouseFilter = Control.MouseFilterEnum.Pass;
+                
                 panel.GuiInput += (@event) => 
                 {
                     if (@event is InputEventMouseButton mb && mb.ButtonIndex == MouseButton.Left && mb.Pressed)
                     {
-                        // 【核心修改】：点击时默认先清空其他选择，并将该地块上所有属于我的部队加入选中列表
+                        // 点击时默认先清空其他选择，并将该地块上所有属于我的部队加入选中列表
                         ClearUnitSelection();
-                        
                         int myId = CoreHost.LocalContext.MyPlayerId;
                         var myUnits = CoreHost.WorldSimulationState.DeployedUnits.Values
                             .Where(u => u.CurrentLocation == coord && u.OwnerId == myId);
-                        
-                        foreach (var u in myUnits)
-                        {
-                            _selectedUnitIds.Add(u.UnitId);
-                        }
+                        foreach (var u in myUnits) _selectedUnitIds.Add(u.UnitId);
 
-                        UpdateStackVisual(coord); // 立刻刷新当前栈牌的高亮状态
-                        ShowUnitStackPanel(coord); // 弹出列表（列表里的按钮会自动显示为“取消”）
-                        panel.AcceptEvent(); // 吞噬事件，防止点到后面的地块
+                        UpdateStackVisual(coord); // 刷新高亮外观
+                        ShowUnitStackPanel(coord); // 打开左上角详细驻军列表面板
+                        panel.AcceptEvent();       // 吞噬点击事件，防止点穿到下层地块
                     }
                 };
             }
         }
+    }
 
-        // 3. 刷新位置（不再需要堆叠偏移量）
-        var offset = MapRenderBridge.CubeToOffset(coord.X, coord.Y, coord.Z);
-        Vector2I cellCoords = new Vector2I(offset.offsetX, offset.offsetY);
-        tokenNode.Position = _groundLayer.MapToLocal(cellCoords);
+    // 4. 刷新战场逻辑坐标到游戏世界物理坐标的转换
+    var currentToken = _stackNodes[coord];
+    var offset = MapRenderBridge.CubeToOffset(coord.X, coord.Y, coord.Z);
+    currentToken.Position = _groundLayer.MapToLocal(new Vector2I(offset.offsetX, offset.offsetY));
 
-        // 4. 刷新总人数
-        int totalHeadcount = unitsHere.Sum(u => u.Headcount);
-        var headcountLabel = tokenNode.GetNode<Label>("Headcount");
-        if (headcountLabel != null) headcountLabel.Text = totalHeadcount.ToString();
-
-        // 5. 刷新颜色（提取这个格子上第一支部队的颜色作为代表色）
-        var firstUnit = unitsHere.First();
-        var playerInfo = CoreHost.LocalContext.LobbyPlayers.Find(p => p.PlayerId == firstUnit.OwnerId);
-        if (playerInfo != null)
+    // 5. 根据 Token 的具体形态，渲染对应的聚合数据
+    if (isCombatActive)
+    {
+        // ==========================================
+        // 【聚合战场表现】：解算并渲染多对多军团对抗属性
+        // ==========================================
+        if (unitsHere.Count >= 1)
         {
-            var styleBox = new StyleBoxFlat { BgColor = _colorValues[playerInfo.ColorId] };
-            tokenNode.GetNode<Panel>("Panel").AddThemeStyleboxOverride("panel", styleBox);
+            // 划分战场对抗双方阵营（以格子里的第一支部队为A军团基准，其余敌对势力为B军团）
+            int factionA_Id = unitsHere[0].OwnerId;
+            var sideA = unitsHere.Where(u => u.OwnerId == factionA_Id).ToList();
+            var sideB = unitsHere.Where(u => u.OwnerId != factionA_Id).ToList();
+
+            // 渲染左侧进攻翼（A军团总兵力与平均士气）
+            if (sideA.Count > 0)
+            {
+                int totalHeadA = sideA.Sum(u => u.Headcount);
+                float avgMoraleA = (float)sideA.Average(u => u.Morale);
+                
+                currentToken.GetNode<Label>("UnitLift/Headcount").Text = totalHeadA.ToString();
+                currentToken.GetNode<ProgressBar>("UnitLift/MoraleProgressBar").Value = avgMoraleA / 1000 * 100;
+                
+                var aInfo = CoreHost.LocalContext.LobbyPlayers.Find(p => p.PlayerId == factionA_Id);
+                if (aInfo != null) currentToken.GetNode<Panel>("UnitLift/Panel").AddThemeStyleboxOverride("panel", new StyleBoxFlat { BgColor = _colorValues[aInfo.ColorId] });
+            }
+
+            // 渲染右侧防守翼（B军团总兵力与平均士气）
+            if (sideB.Count > 0)
+            {
+                int totalHeadB = sideB.Sum(u => u.Headcount);
+                float avgMoraleB = (float)sideB.Average(u => u.Morale);
+                
+                currentToken.GetNode<Label>("UnitRight/Headcount").Text = totalHeadB.ToString();
+                currentToken.GetNode<ProgressBar>("UnitRight/MoraleProgressBar").Value = avgMoraleB / 1000 * 100;
+                
+                var bInfo = CoreHost.LocalContext.LobbyPlayers.Find(p => p.PlayerId == sideB[0].OwnerId);
+                if (bInfo != null) currentToken.GetNode<Panel>("UnitRight/Panel").AddThemeStyleboxOverride("panel", new StyleBoxFlat { BgColor = _colorValues[bInfo.ColorId] });
+            }
         }
-// 【新增/优化】：刷新血条与士气条
-        var pBarHeadcount = tokenNode.GetNode<ProgressBar>("MoraleProgressBar"); // 原有的血条(Headcount)
-        var pBarMorale = tokenNode.GetNode<ProgressBar>("MoveProgressBar");     // 原有的进度条(MoveProgressBar)，我们复用它显示士气
-
-        // 假设每个栈牌只显示该地块最强的单位属性，或总属性
-        var primaryUnit = unitsHere.First(); 
+    }
+    else
+    {
+        // ==========================================
+        // 【常规军团表现】：渲染和平状态下的军事单位栈
+        // ==========================================
+        int totalHeadcount = unitsHere.Sum(u => u.Headcount);
+        currentToken.GetNode<Label>("Headcount").Text = totalHeadcount.ToString();
         
-        // 刷新血条 (单位归一化处理，假设 1000 人为满血)
-        if (pBarHeadcount != null) pBarHeadcount.Value = (float)totalHeadcount / 1000 * 100;
-
-        // 刷新士气条 (primaryUnit.Morale 为 0-1000)
+        var primaryUnit = unitsHere.First();
+        var pBarMorale = currentToken.GetNode<ProgressBar>("MoraleProgressBar");
         if (pBarMorale != null) 
         {
-            pBarMorale.Visible = true;
             pBarMorale.Value = (float)primaryUnit.Morale / 1000 * 100;
-            // 士气低落时变红
             pBarMorale.Modulate = pBarMorale.Value < 30 ? Colors.Red : Colors.LightBlue;
         }
-        
-        // 6. 刷新高亮状态（只要这个格子上【有任何一支部队被选中了】，栈牌整体就发光）
-        bool hasSelected = unitsHere.Any(u => _selectedUnitIds.Contains(u.UnitId));
-        tokenNode.Modulate = hasSelected ? new Color(1.5f, 1.5f, 1.5f, 1.0f) : Colors.White;
+
+        var playerInfo = CoreHost.LocalContext.LobbyPlayers.Find(p => p.PlayerId == primaryUnit.OwnerId);
+        if (playerInfo != null) currentToken.GetNode<Panel>("Panel").AddThemeStyleboxOverride("panel", new StyleBoxFlat { BgColor = _colorValues[playerInfo.ColorId] });
     }
+
+    // 6. 统一高亮过滤机制：只要当前格子里有任何一个属于我方的单位被框选或选中了，整体 Token 发光高亮
+    bool hasSelected = unitsHere.Any(u => _selectedUnitIds.Contains(u.UnitId));
+    currentToken.Modulate = hasSelected ? new Color(1.5f, 1.5f, 1.5f, 1.0f) : Colors.White;
+}
+
     
     
     // ==========================================
@@ -360,35 +458,34 @@ public partial class MainGameView : Node
 
     private void UpdateUnitMoveProgressBars()
     {
-        var state = CoreHost.WorldSimulationState;
+        var state = CoreHost.WorldSimulationState;  
         if (state == null) return;
 
-        // 遍历所有地块的栈牌
-        foreach (var kvp in _stackNodes)
+        // 1. 【新增】：全量预清理，先把所有常规 MilitaryToken 上的行军条藏起来
+        foreach (var tokenNode in _stackNodes.Values)
         {
-            if (!IsInstanceValid(kvp.Value)) continue;
-            var pBar = kvp.Value.GetNode<ProgressBar>("MoveProgressBar");
-            
-            if (pBar != null)
+            if (IsInstanceValid(tokenNode) && tokenNode.HasNode("MoveProgressBar"))
             {
-                // 【核心修改】：默认先将进度条归零并隐藏
-                pBar.Value = 0;
-                pBar.Visible = false;
+                tokenNode.GetNode<ProgressBar>("MoveProgressBar").Visible = false;
+            }
+        }
 
-                // 找出这个地块上正在移动的部队（选进度跑得最快的那支来作为代表展示）
-                var unitsHere = state.DeployedUnits.Values.Where(u => u.CurrentLocation == kvp.Key);
-                foreach (var unit in unitsHere)
+        // 2. 仅对当前活跃的行军任务进行高亮和赋值  
+        foreach (var kvp in state.ActiveUnitMoves)
+        {
+            var task = kvp.Value;  
+            var unit = state.DeployedUnits.TryGetValue(task.UnitId, out var u) ? u : null;  
+            if (unit == null) continue;
+
+            HexCoord coord = unit.CurrentLocation;  
+            if (_stackNodes.TryGetValue(coord, out var currentToken) && IsInstanceValid(currentToken))  
+            {
+                if (currentToken.HasNode("MoveProgressBar"))  
                 {
-                    var task = state.ActiveUnitMoves.Values.FirstOrDefault(m => m.UnitId == unit.UnitId);
-                    if (task != null && task.TotalDaysForNextTile > 0)
-                    {
-                        float progress = (1.0f - (float)task.RemainingDaysForNextTile / task.TotalDaysForNextTile) * 100f;
-                        pBar.Value = progress;
-                        
-                        // 【核心修改】：只要找到该地块上有任意一支部队在移动，就把进度条显示出来
-                        pBar.Visible = true; 
-                        break; // 找到一个就足够显示了，直接 break
-                    }
+                    var pBar = currentToken.GetNode<ProgressBar>("MoveProgressBar");  
+                    pBar.Visible = true; // 仅行军中可见  
+                    pBar.MaxValue = task.TotalDaysForNextTile;  
+                    pBar.Value = task.TotalDaysForNextTile - task.RemainingDaysForNextTile;  
                 }
             }
         }
@@ -400,8 +497,10 @@ public partial class MainGameView : Node
     
     private void OnCombatStartedSync(WorldSimulationState.CombatSession combat)
     {
-        ClientDebugger.LogHandler?.Invoke($"[UI] 战斗开始: {combat.AttackerUnitId} vs {combat.DefenderUnitId}");
-        // 可以播放一个简短的战斗爆发特效，或者在 token 上显示交叉剑的图标
+        ClientDebugger.LogHandler?.Invoke($"[UI] 聚合战斗爆发，战场坐标: ({combat.Location.X}, {combat.Location.Y}, {combat.Location.Z})");
+    
+        // 【核心修复】：战斗爆发时，立刻主动刷新该地块的外观，使其无缝从常规 Token 切换为 BattleToken
+        UpdateStackVisual(combat.Location);
     }
 
     private void OnCombatUpdatedSync(WorldSimulationState.CombatSession combat)
@@ -417,10 +516,13 @@ public partial class MainGameView : Node
         }
     }
 
-    private void OnCombatEndedSync(int combatId, int winnerUnitId)
+// 【修改】：接收到加入 HexCoord 的战斗结束通知
+    private void OnCombatEndedSync(int combatId, HexCoord location, int winnerUnitId)
     {
-        ClientDebugger.LogHandler?.Invoke($"[UI] 战斗结束，胜利者: {winnerUnitId}");
-        // 移除战斗图标，或者清理战斗记录 UI
+        ClientDebugger.LogHandler?.Invoke($"[UI] 战斗结束，胜利者代表: {winnerUnitId}");
+        
+        // 【核心修复 Bug 1】：战斗一打完，立刻无缝重绘该地块外观，将 BattleToken 降级销毁并还原为 MilitaryToken
+        UpdateStackVisual(location); 
     }
     
     // ==========================================
@@ -430,7 +532,7 @@ public partial class MainGameView : Node
     {
         UpdateColonizationFloatingTexts();
         UpdateUnitBuildFloatingTexts(); 
-
+        UpdateOccupationFloatingBars(); // 【新增】每帧驱动占领进度条
         Vector2 godotDir = Input.GetVector("a", "d", "w", "s");
         godotDir.Y = -godotDir.Y;
         CoreHost.LocalContext.SetLocalInput(godotDir != Vector2.Zero ? new FixVector2((Fix64)godotDir.X, (Fix64)godotDir.Y) : FixVector2.Zero);
@@ -527,7 +629,78 @@ public partial class MainGameView : Node
             label.Modulate = kvp.Value.PlayerId == CoreHost.LocalContext.MyPlayerId ? Colors.LimeGreen : Colors.IndianRed;
         }
     }
+/// <summary>
+    /// 【新增】动态创建、更新和销毁战场地块上的占领进度条
+    /// </summary>
+    private void UpdateOccupationFloatingBars()
+    {
+        var state = CoreHost.WorldSimulationState;
+        if (state == null) return;
 
+        // 1. 自动清理：如果某个地块的占领任务已经结束（满30天成功或军队撤离），销毁对应的进度条
+        var keysToRemove = _occupationProgressBars.Keys.Where(k => !state.ActiveOccupations.ContainsKey(k)).ToList();
+        foreach (var key in keysToRemove) 
+        { 
+            if (IsInstanceValid(_occupationProgressBars[key]))
+            {
+                _occupationProgressBars[key].QueueFree(); 
+            }
+            _occupationProgressBars.Remove(key);
+        }
+        
+        // 2. 动态创建与更新：遍历当前所有正在进行的占领任务
+        foreach (var kvp in state.ActiveOccupations)
+        {
+            HexCoord coord = kvp.Key;
+            var task = kvp.Value;
+
+            // 如果该地块还没有创建进度条，则动态实例化一个
+            if (!_occupationProgressBars.TryGetValue(coord, out ProgressBar pBar) || !IsInstanceValid(pBar))
+            {
+                pBar = new ProgressBar();
+                pBar.CustomMinimumSize = new Vector2(100, 14); // 设定进度条宽高
+                pBar.ShowPercentage = false;                 // 隐藏默认的数字百分比，保持画面整洁
+                pBar.ZIndex = 100;                           // 确保显示在地图和军队贴图的上层
+                
+                // 绑定进度条的范围（对应我们设计的 30 天占领规则）
+                pBar.MinValue = 0;
+                pBar.MaxValue = 30;
+
+                // 计算该六边形在 Godot 瓦片地图中的二维像素坐标
+                var offset = MapRenderBridge.CubeToOffset(coord.X, coord.Y, coord.Z);
+                Vector2I cellCoords = new Vector2I(offset.offsetX, offset.offsetY);
+                
+                // 将进度条精确定位到地块的中心偏下方（X轴向左偏移半宽以居中，Y轴向下偏移）
+                pBar.Position = _groundLayer.MapToLocal(cellCoords) + new Vector2(-50, 35);
+                
+                _groundLayer.AddChild(pBar);
+                _occupationProgressBars[coord] = pBar;
+            }
+
+            // 3. 刷新当前的占领天数进度
+            pBar.Value = task.AccumulatedDays;
+
+            // 4. 阵营视觉区分：根据正在占领该地块的主体是谁，赋予不同的高亮颜色
+            if (task.OccupyingPlayerId == CoreHost.LocalContext.MyPlayerId)
+            {
+                pBar.Modulate = Colors.Orange; // 我方正在占领敌方土地，显示橙色/高亮提示
+            }
+            else
+            {
+                pBar.Modulate = Colors.Crimson; // 敌方正在占领土地（或中立地），显示深红警告色
+            }
+        }
+    }
+    private void OnMonthlySettlementRequiredSync()
+    {
+        // 月底结算后（包括士气恢复），全量刷新当前大图上所有栈牌的外观
+        // 这样就能把加上的士气实时同步到 ProgressBar 表现上 [cite: 1933, 1934]
+        foreach (var coord in _stackNodes.Keys.ToList())
+        {
+            UpdateStackVisual(coord);
+        }
+    }
+    
     public override void _ExitTree()
     {
         if (CoreHost.TimeSystem != null)
@@ -541,6 +714,7 @@ public partial class MainGameView : Node
             CoreHost.WorldSimulationState.OnCombatStarted -= OnCombatStartedSync;
             CoreHost.WorldSimulationState.OnCombatUpdated -= OnCombatUpdatedSync;
             CoreHost.WorldSimulationState.OnCombatEnded -= OnCombatEndedSync;
+            CoreHost.WorldSimulationState.OnMonthlySettlementRequired -= OnMonthlySettlementRequiredSync;
             if (_inputHandler != null)
             {
                 _inputHandler.OnRightClicked -= OnMapRightClicked;
